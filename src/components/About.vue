@@ -14,10 +14,13 @@ const journey = [
   <section id="about" class="py-20 border-t" style="border-color: var(--border)">
     <div class="mx-auto max-w-3xl px-5">
 
-      <p v-reveal class="text-xs font-mono mb-6" style="color: var(--text-3)">{{ t('about.label') }}</p>
+      <div v-reveal class="section-kicker mb-6">
+        <span class="section-kicker-dot" aria-hidden="true" />
+        {{ t('about.label') }}
+      </div>
 
-      <div class="grid gap-12 md:grid-cols-2">
-        <div v-reveal>
+      <div class="grid gap-6 md:grid-cols-2 md:items-start">
+        <div v-reveal class="bento-card has-glow" style="--card-accent: var(--c-blue)">
           <h2 class="text-2xl font-semibold tracking-tight mb-4" style="color: var(--text)">
             {{ t('about.heading') }}
           </h2>
@@ -34,10 +37,11 @@ const journey = [
           </div>
         </div>
 
-        <div v-reveal="{ delay: 100 }">
+        <div v-reveal="{ delay: 100 }" class="bento-card" style="--card-accent: var(--c-violet)">
           <p class="text-xs font-mono mb-5" style="color: var(--text-3)">{{ t('about.career') }}</p>
-          <ol class="space-y-5">
-            <li v-for="step in journey" :key="step.title" class="tl-item">
+          <ol class="timeline-rail space-y-5">
+            <li v-for="step in journey" :key="step.title" class="exp-item">
+              <span class="timeline-marker" aria-hidden="true" />
               <p class="text-xs font-mono mb-0.5" style="color: var(--text-3)">{{ step.year }}</p>
               <p class="text-sm font-medium" style="color: var(--text)">{{ step.title }}</p>
               <p class="text-xs leading-relaxed mt-0.5" style="color: var(--text-2)">{{ step.desc }}</p>

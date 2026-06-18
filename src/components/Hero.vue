@@ -1,15 +1,14 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
-import * as THREE from 'three'
-import { gsap } from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import SplineHero from './SplineHero.vue'
-import { prefersReducedMotion } from '../composables/useScrollAnimations.js'
+import { ref, onMounted, onUnmounted, defineAsyncComponent } from 'vue'
+import {
+  prefersReducedMotion,
+  shouldUseHeroScene,
+  scheduleIdle,
+} from '../composables/usePerformanceMode.js'
 import { useI18n } from '../composables/useI18n.js'
 
 const { t } = useI18n()
-
-gsap.registerPlugin(ScrollTrigger)
+const SplineHero = defineAsyncComponent(() => import('./SplineHero.vue'))
 
 // ── Refs ─────────────────────────────────────────────────────────────
 const heroSection   = ref(null)
@@ -21,6 +20,8 @@ const aiRef         = ref(null)
 const roleRef       = ref(null)
 const statsRef      = ref(null)
 const ctasRef       = ref(null)
+const showSpline    = ref(false)
+const useHeroScene  = shouldUseHeroScene()
 
 const NAME_LINES = [
   { text: 'Dwira',   accent: false },
@@ -39,6 +40,7 @@ const AI_PHRASES = [
 ]
 const aiText = ref('')
 let aiTimer = null, phraseIdx = 0, charIdx = 0, isDeleting = false
+let idleHandle = null
 
 function tickTypewriter() {
   const phrase = AI_PHRASES[phraseIdx]
@@ -59,18 +61,46 @@ function tickTypewriter() {
 }
 
 // ── Three.js — multi-color particles with mouse parallax ──────────────
+let THREE_LIB = null
 let r3 = null, scene3 = null, cam3 = null, pts3 = null, af3 = null
 let baseRotX = 0, baseRotY = 0
 let mTargetX = 0, mTargetY = 0, mCurrX = 0, mCurrY = 0
+let heroVisible = true
+let heroObserver = null
+let gsapLib = null
+let ScrollTriggerLib = null
+let scrollCtx = null
+let isDisposed = false
+
+async function loadMotionLibs() {
+  if (gsapLib && ScrollTriggerLib) return
+
+  const [gsapMod, triggerMod] = await Promise.all([
+    import('gsap'),
+    import('gsap/ScrollTrigger'),
+  ])
+
+  gsapLib = gsapMod.gsap ?? gsapMod.default ?? gsapMod
+  ScrollTriggerLib = triggerMod.ScrollTrigger ?? triggerMod.default ?? triggerMod
+  gsapLib.registerPlugin(ScrollTriggerLib)
+}
 
 function onMouseMove(e) {
   mTargetX = (e.clientX / window.innerWidth - 0.5) * 2
   mTargetY = -(e.clientY / window.innerHeight - 0.5) * 2
 }
 
-function initThree() {
+async function initThree() {
   const canvas = particlesCvs.value
-  if (!canvas) return
+  if (!canvas || isDisposed) return
+
+  if (!THREE_LIB) {
+    THREE_LIB = await import('three')
+  }
+
+  if (isDisposed || !canvas) return
+
+  const THREE = THREE_LIB
 
   r3 = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: false })
   r3.setPixelRatio(Math.min(window.devicePixelRatio, 1.0))
@@ -91,10 +121,8 @@ function initThree() {
     pos[i*3+2] = (Math.random() - 0.5) * 10
 
     if (Math.random() > 0.38) {
-      // Accent blue #3291ff
       colors[i*3] = 0.196; colors[i*3+1] = 0.568; colors[i*3+2] = 1.0
     } else {
-      // Near white
       const v = 0.75 + Math.random() * 0.25
       colors[i*3] = v; colors[i*3+1] = v; colors[i*3+2] = v
     }
@@ -111,6 +139,7 @@ function initThree() {
   }))
   scene3.add(pts3)
   tickThree()
+
   if (heroSection.value) watchHeroVisibility(heroSection.value)
 }
 
@@ -133,9 +162,6 @@ function resizeThree() {
   cam3.updateProjectionMatrix()
   r3.setSize(window.innerWidth, window.innerHeight)
 }
-
-let heroVisible = true
-let heroObserver = null
 
 function watchHeroVisibility(el) {
   heroObserver = new IntersectionObserver(
@@ -170,24 +196,25 @@ function scrambleNumber(el, target, totalMs = 1600) {
 }
 
 // ── GSAP: entrance + scroll ───────────────────────────────────────────
-let scrollCtx = null
+async function initEntrance() {
+  await loadMotionLibs()
+  if (isDisposed) return
 
-function initEntrance() {
-  // Set initial hidden state
-  gsap.set(aiRef.value,    { opacity: 0, x: -20 })
-  gsap.set([roleRef.value, statsRef.value, ctasRef.value], { opacity: 0, y: 20 })
+  gsapLib.set(aiRef.value,    { opacity: 0, x: -20 })
+  gsapLib.set([roleRef.value, statsRef.value, ctasRef.value], { opacity: 0, y: 20 })
 
-  // Staggered reveal synced to WelcomeIntro exit (~2.5s)
-  gsap.to(aiRef.value,    { opacity: 1, x: 0, duration: 0.65, ease: 'power3.out', delay: 2.6  })
-  gsap.to(roleRef.value,  { opacity: 1, y: 0, duration: 0.65, ease: 'power3.out', delay: 3.05 })
-  gsap.to(statsRef.value, { opacity: 1, y: 0, duration: 0.65, ease: 'power3.out', delay: 3.15 })
-  gsap.to(ctasRef.value,  { opacity: 1, y: 0, duration: 0.65, ease: 'power3.out', delay: 3.30 })
+  gsapLib.to(aiRef.value,    { opacity: 1, x: 0, duration: 0.65, ease: 'power3.out', delay: 2.6  })
+  gsapLib.to(roleRef.value,  { opacity: 1, y: 0, duration: 0.65, ease: 'power3.out', delay: 3.05 })
+  gsapLib.to(statsRef.value, { opacity: 1, y: 0, duration: 0.65, ease: 'power3.out', delay: 3.15 })
+  gsapLib.to(ctasRef.value,  { opacity: 1, y: 0, duration: 0.65, ease: 'power3.out', delay: 3.30 })
 }
 
-function initScroll() {
-  scrollCtx = gsap.context(() => {
-    // Content parallax-out on scroll
-    gsap.to(heroContent.value, {
+async function initScroll() {
+  await loadMotionLibs()
+  if (isDisposed) return
+
+  scrollCtx = gsapLib.context(() => {
+    gsapLib.to(heroContent.value, {
       y: -70, opacity: 0, ease: 'none',
       scrollTrigger: {
         trigger: heroSection.value,
@@ -195,8 +222,7 @@ function initScroll() {
       },
     })
 
-    // Particles + Spline scroll integration
-    ScrollTrigger.create({
+    ScrollTriggerLib.create({
       trigger: heroSection.value,
       start: 'top top', end: '38% top', scrub: true,
       onUpdate: (self) => {
@@ -206,8 +232,7 @@ function initScroll() {
       },
     })
 
-    // Stats scramble on scroll into view
-    ScrollTrigger.create({
+    ScrollTriggerLib.create({
       trigger: statsRef.value,
       start: 'top 92%', once: true,
       onEnter: () => scrambleNumber(statProjects.value, 40),
@@ -217,17 +242,40 @@ function initScroll() {
 
 // ── Lifecycle ─────────────────────────────────────────────────────────
 onMounted(() => {
+  isDisposed = false
+  if (prefersReducedMotion()) {
+    aiText.value = AI_PHRASES[0]
+    return
+  }
+
+  if (!useHeroScene) {
+    aiText.value = AI_PHRASES[0]
+    return
+  }
+
   aiTimer = setTimeout(tickTypewriter, 700)
-  if (prefersReducedMotion()) return
-  initThree()
+
+  idleHandle = scheduleIdle(() => {
+    if (!isDisposed) showSpline.value = true
+  }, 900)
+
+  void initThree()
   window.addEventListener('resize', resizeThree)
   window.addEventListener('mousemove', onMouseMove)
-  initEntrance()
-  initScroll()
+  void initEntrance()
+  void initScroll()
 })
 
 onUnmounted(() => {
+  isDisposed = true
   clearTimeout(aiTimer)
+  if (idleHandle != null) {
+    if (window.cancelIdleCallback && typeof idleHandle === 'number') {
+      window.cancelIdleCallback(idleHandle)
+    } else {
+      clearTimeout(idleHandle)
+    }
+  }
   destroyThree()
   scrollCtx?.revert()
   window.removeEventListener('resize', resizeThree)
@@ -238,11 +286,12 @@ onUnmounted(() => {
 <template>
   <section id="home" ref="heroSection" class="hero-section">
 
-    <!-- Layer 0 · Spline 3D — full viewport background -->
-    <SplineHero ref="splineHeroRef" />
+    <!-- Layer 0 · Spline 3D — load only on large screens -->
+    <SplineHero v-if="showSpline" ref="splineHeroRef" />
+    <div v-else class="hero-static-scene" aria-hidden="true" />
 
     <!-- Layer 1 · Three.js particles -->
-    <canvas ref="particlesCvs" class="particles-canvas" aria-hidden="true" />
+    <canvas v-if="useHeroScene" ref="particlesCvs" class="particles-canvas" aria-hidden="true" />
 
     <!-- Layer 2 · Readability gradients -->
     <div class="grad-left"   aria-hidden="true" />
@@ -343,6 +392,19 @@ onUnmounted(() => {
   height: 100%;
   pointer-events: none;
   z-index: 2;
+}
+
+/* ── Static fallback scene ────────────────────────────────────────── */
+.hero-static-scene {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(50, 145, 255, 0.14), transparent 32%),
+    radial-gradient(circle at 80% 30%, rgba(139, 92, 246, 0.14), transparent 34%),
+    linear-gradient(135deg, rgba(17, 17, 17, 0.04), transparent 48%);
+  opacity: 0.9;
+  pointer-events: none;
+  z-index: 1;
 }
 
 /* ── Gradient overlays ────────────────────────────────────────────── */
@@ -641,6 +703,9 @@ onUnmounted(() => {
   .hero-body { max-width: 520px; }
   .grad-left {
     background: linear-gradient(90deg, var(--bg) 0%, var(--bg) 8%, transparent 62%);
+  }
+  .hero-static-scene {
+    opacity: 0.75;
   }
 }
 

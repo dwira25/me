@@ -30,13 +30,17 @@ const msgs = {
     'about.tag.since': 'Sejak 2018',
     'about.career':    '// jalur karier',
 
-    'skills.label': '// keahlian',
+    'skills.label':   '// keahlian',
+    'skills.heading': 'Tools yang dipakai untuk menjalankan sistem, bukan sekadar daftar.',
+    'skills.sub':     'Dari project management klasik sampai AI agent & MCP server — dipilih berdasarkan apa yang benar-benar terpakai di lapangan.',
     'skills.g1':    'Manajemen Proyek',
     'skills.g2':    'Sistem & Integrasi',
     'skills.g3':    'AI & Pengembangan',
 
-    'projects.label':   '// proyek',
-    'projects.heading': 'Sistem yang sudah dibangun & dijalankan',
+    'projects.label':    '// proyek',
+    'projects.heading':  'Sistem yang sudah dibangun & dijalankan',
+    'projects.sub':      'Sebagian sistem yang sudah live dan dipakai sehari-hari oleh tim operasional.',
+    'projects.featured': 'Unggulan',
 
     'exp.label':   '// pengalaman',
     'exp.heading': 'Perjalanan karier',
@@ -44,10 +48,13 @@ const msgs = {
 
     'services.label':   '// layanan',
     'services.heading': 'Layanan untuk tim Anda',
+    'services.sub':     'Dari setup workspace sampai AI workflow — disesuaikan dengan cara tim Anda bekerja.',
 
     'contact.label':   '// kontak',
     'contact.heading': 'Mari diskusikan kebutuhan tim Anda.',
     'contact.desc':    'Terbuka untuk diskusi seputar ClickUp, workflow automation, ERP/WMS/TMS, integrasi API, dan AI Workspace.',
+    'contact.status':  'Tersedia untuk proyek baru',
+    'contact.cli':     'kontak — zsh',
   },
   en: {
     'nav.about':      'About',
@@ -74,13 +81,17 @@ const msgs = {
     'about.tag.since': 'Since 2018',
     'about.career':    '// career path',
 
-    'skills.label': '// skills',
+    'skills.label':   '// skills',
+    'skills.heading': 'Tools used to run real systems, not just listed on a resume.',
+    'skills.sub':     'From classic project management to AI agents & MCP servers — chosen for what actually gets used in the field.',
     'skills.g1':    'Project Management',
     'skills.g2':    'Systems & Integration',
     'skills.g3':    'AI & Development',
 
-    'projects.label':   '// projects',
-    'projects.heading': 'Systems built & deployed',
+    'projects.label':    '// projects',
+    'projects.heading':  'Systems built & deployed',
+    'projects.sub':      'A selection of systems that are live and used daily by operational teams.',
+    'projects.featured': 'Featured',
 
     'exp.label':   '// experience',
     'exp.heading': 'Career journey',
@@ -88,10 +99,13 @@ const msgs = {
 
     'services.label':   '// services',
     'services.heading': 'Services for your team',
+    'services.sub':     'From workspace setup to AI workflows — shaped around how your team actually works.',
 
     'contact.label':   '// contact',
     'contact.heading': "Let's discuss your team's needs.",
     'contact.desc':    'Open for discussions about ClickUp, workflow automation, ERP/WMS/TMS, API integration, and AI Workspace.',
+    'contact.status':  'Available for new projects',
+    'contact.cli':     'contact — zsh',
   },
 }
 

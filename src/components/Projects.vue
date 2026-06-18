@@ -1,7 +1,11 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, defineAsyncComponent } from 'vue'
 import { useI18n } from '../composables/useI18n.js'
 const { lang, t } = useI18n()
+
+const ProjectCard3D = defineAsyncComponent(() => import('./ProjectCard3D.vue'))
+
+const ACCENTS = ['var(--c-cyan)', 'var(--c-blue)', 'var(--c-violet)']
 
 const rawProjects = [
   { title: 'Aivora Workspace',
@@ -55,7 +59,11 @@ const rawProjects = [
 ]
 
 const projects = computed(() =>
-  rawProjects.map(p => ({ ...p, desc: lang.value === 'en' ? p.descEn : p.desc }))
+  rawProjects.map((p, i) => ({
+    ...p,
+    desc: lang.value === 'en' ? p.descEn : p.desc,
+    accent: ACCENTS[i % 3],
+  }))
 )
 </script>
 
@@ -63,21 +71,34 @@ const projects = computed(() =>
   <section id="projects" class="py-20 border-t" style="border-color: var(--border)">
     <div class="mx-auto max-w-3xl px-5">
 
-      <p v-reveal class="text-xs font-mono mb-6" style="color: var(--text-3)">{{ t('projects.label') }}</p>
-      <h2 v-reveal="{ delay: 80 }" class="text-2xl font-semibold tracking-tight mb-8" style="color: var(--text)">
+      <div v-reveal class="section-kicker mb-6">
+        <span class="section-kicker-dot" aria-hidden="true" />
+        {{ t('projects.label') }}
+      </div>
+      <h2 v-reveal="{ delay: 80 }" class="text-2xl font-semibold tracking-tight mb-3" style="color: var(--text)">
         {{ t('projects.heading') }}
       </h2>
+      <p v-reveal="{ delay: 100 }" class="section-sub mb-10">{{ t('projects.sub') }}</p>
 
       <div class="grid gap-3 md:grid-cols-2">
         <div
           v-for="(p, i) in projects"
           :key="p.title"
           v-reveal="{ delay: (i % 2) * 60 }"
-          class="proj-card"
+          v-tilt
+          class="proj-card tilt-card"
           :class="p.featured ? 'md:col-span-2' : ''"
+          :style="{ '--card-accent': p.accent }"
         >
+          <div v-if="p.featured" class="proj-card-visual">
+            <ProjectCard3D :index="0" />
+          </div>
+
           <div class="flex items-start justify-between gap-3">
-            <h3 class="text-sm font-semibold" style="color: var(--text)">{{ p.title }}</h3>
+            <div class="flex items-center gap-2">
+              <span v-if="p.featured" class="tag" style="color: var(--accent); border-color: var(--accent)">{{ t('projects.featured') }}</span>
+              <h3 class="text-sm font-semibold" style="color: var(--text)">{{ p.title }}</h3>
+            </div>
             <span class="text-xs font-mono shrink-0 mt-0.5" style="color: var(--text-3)">
               {{ String(i + 1).padStart(2, '0') }}
             </span>

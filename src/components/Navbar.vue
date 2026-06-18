@@ -1,6 +1,5 @@
 <script setup>
 import { ref, onMounted, onUnmounted, inject, computed } from 'vue'
-import { getLenis } from '../composables/useScrollAnimations.js'
 import { useI18n } from '../composables/useI18n.js'
 
 const isDark = inject('isDark')
@@ -18,18 +17,25 @@ const isScrolled = ref(false)
 const isMenuOpen = ref(false)
 const scrollProgress = ref(0)
 
-function handleScroll({ scroll, limit }) {
+function updateScrollState() {
+  const scroll = window.scrollY || document.documentElement.scrollTop || 0
+  const limit = Math.max(
+    document.documentElement.scrollHeight - window.innerHeight,
+    0
+  )
+
   isScrolled.value = scroll > 40
   scrollProgress.value = limit > 0 ? (scroll / limit) * 100 : 0
 }
 
 onMounted(() => {
-  const lenis = getLenis()
-  if (lenis) lenis.on('scroll', handleScroll)
+  updateScrollState()
+  window.addEventListener('scroll', updateScrollState, { passive: true })
+  window.addEventListener('resize', updateScrollState)
 })
 onUnmounted(() => {
-  const lenis = getLenis()
-  if (lenis) lenis.off('scroll', handleScroll)
+  window.removeEventListener('scroll', updateScrollState)
+  window.removeEventListener('resize', updateScrollState)
 })
 </script>
 
