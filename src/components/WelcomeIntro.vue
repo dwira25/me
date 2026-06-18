@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { shouldSkipIntro } from '../composables/usePerformanceMode.js'
+import { safeSessionStorageGet, safeSessionStorageSet } from '../composables/useSafeStorage.js'
 
 const isVisible = ref(false)
 const isExiting = ref(false)
@@ -11,9 +12,9 @@ onMounted(() => {
   if (shouldSkipIntro()) return
 
   const seenKey = 'welcome-intro-seen'
-  if (window.sessionStorage.getItem(seenKey) === '1') return
+  if (safeSessionStorageGet(seenKey) === '1') return
 
-  window.sessionStorage.setItem(seenKey, '1')
+  safeSessionStorageSet(seenKey, '1')
   isVisible.value = true
 
   enterTimer = window.setTimeout(() => {

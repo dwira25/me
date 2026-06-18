@@ -1,8 +1,13 @@
 <script setup>
-import { ref, reactive, computed, onMounted, onBeforeUnmount, provide, defineAsyncComponent } from 'vue'
+import { ref, reactive, computed, watch, nextTick, onMounted, onBeforeUnmount, provide, defineAsyncComponent } from 'vue'
 import Navbar from './components/Navbar.vue'
 import WelcomeIntro from './components/WelcomeIntro.vue'
-import { shouldUseLiteMode } from './composables/usePerformanceMode.js'
+import {
+  prefersReducedData,
+  prefersReducedMotion,
+  shouldUseLiteMode,
+} from './composables/usePerformanceMode.js'
+import { safeLocalStorageGet, safeLocalStorageSet } from './composables/useSafeStorage.js'
 
 const Hero = defineAsyncComponent(() => import('./components/Hero.vue'))
 const SectionSkeleton = defineAsyncComponent(() => import('./components/SectionSkeleton.vue'))
@@ -40,16 +45,23 @@ const sentinels = {
 const observers = []
 const shouldRenderPortfolio = computed(() => !liteMode.value || fullPortfolioLoaded.value)
 const shouldRenderFullHero = computed(() => !liteMode.value || fullPortfolioLoaded.value)
+const portfolioObserversReady = ref(false)
+let mobileAutoLoadTimer = null
 
 function toggleDark() {
   isDark.value = !isDark.value
   document.documentElement.classList.toggle('dark', isDark.value)
-  localStorage.setItem('theme', isDark.value ? 'dark' : 'light')
+  safeLocalStorageSet('theme', isDark.value ? 'dark' : 'light')
 }
 
 function markWhenNear(key, rootMargin = '280px 0px') {
   const el = sentinels[key].value
   if (!el) return
+
+  if (typeof IntersectionObserver === 'undefined') {
+    ready[key] = true
+    return
+  }
 
   const observer = new IntersectionObserver(
     ([entry]) => {
@@ -70,17 +82,26 @@ function setSentinel(key, el) {
 }
 
 function loadFullPortfolio() {
+  if (mobileAutoLoadTimer != null) {
+    clearTimeout(mobileAutoLoadTimer)
+    mobileAutoLoadTimer = null
+  }
+
   liteMode.value = false
   fullPortfolioLoaded.value = true
 }
 
-onMounted(() => {
-  const saved = localStorage.getItem('theme')
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-  isDark.value = saved ? saved === 'dark' : prefersDark
-  document.documentElement.classList.toggle('dark', isDark.value)
+function initPortfolioObservers() {
+  if (portfolioObserversReady.value || !shouldRenderPortfolio.value) return
 
-  if (!shouldRenderPortfolio.value) return
+  portfolioObserversReady.value = true
+
+  if (typeof IntersectionObserver === 'undefined') {
+    Object.keys(ready).forEach((key) => {
+      ready[key] = true
+    })
+    return
+  }
 
   markWhenNear('about', '360px 0px')
   markWhenNear('skills', '360px 0px')
@@ -89,9 +110,33 @@ onMounted(() => {
   markWhenNear('services', '320px 0px')
   markWhenNear('contact', '260px 0px')
   markWhenNear('footer', '160px 0px')
+}
+
+onMounted(() => {
+  const saved = safeLocalStorageGet('theme')
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+  isDark.value = saved ? saved === 'dark' : prefersDark
+  document.documentElement.classList.toggle('dark', isDark.value)
+
+  if (liteMode.value && window.innerWidth < 1024 && !prefersReducedMotion() && !prefersReducedData()) {
+    mobileAutoLoadTimer = window.setTimeout(() => {
+      loadFullPortfolio()
+    }, 1200)
+  }
 })
 
+watch(shouldRenderPortfolio, async (shouldRender) => {
+  if (!shouldRender) return
+
+  await nextTick()
+  initPortfolioObservers()
+}, { immediate: true })
+
 onBeforeUnmount(() => {
+  if (mobileAutoLoadTimer != null) {
+    clearTimeout(mobileAutoLoadTimer)
+    mobileAutoLoadTimer = null
+  }
   observers.forEach((observer) => observer.disconnect())
   observers.length = 0
 })

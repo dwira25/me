@@ -11,6 +11,11 @@ export const vReveal = {
       el.style.transitionDelay = `${delay}ms`
     }
 
+    if (typeof IntersectionObserver === 'undefined') {
+      el.classList.add('in-view')
+      return
+    }
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {

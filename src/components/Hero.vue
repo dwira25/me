@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted, defineAsyncComponent } from 'vue'
 import {
   prefersReducedMotion,
+  prefersReducedData,
   shouldUseHeroScene,
   scheduleIdle,
 } from '../composables/usePerformanceMode.js'
@@ -22,6 +23,7 @@ const statsRef      = ref(null)
 const ctasRef       = ref(null)
 const showSpline    = ref(false)
 const useHeroScene  = shouldUseHeroScene()
+const shouldShowSplineHero = !prefersReducedMotion() && !prefersReducedData()
 
 const NAME_LINES = [
   { text: 'Dwira',   accent: false },
@@ -248,16 +250,24 @@ onMounted(() => {
     return
   }
 
+  if (shouldShowSplineHero) {
+    if (useHeroScene) {
+      idleHandle = scheduleIdle(() => {
+        if (!isDisposed) showSpline.value = true
+      }, 900)
+    } else {
+      idleHandle = window.setTimeout(() => {
+        if (!isDisposed) showSpline.value = true
+      }, 350)
+    }
+  }
+
   if (!useHeroScene) {
     aiText.value = AI_PHRASES[0]
     return
   }
 
   aiTimer = setTimeout(tickTypewriter, 700)
-
-  idleHandle = scheduleIdle(() => {
-    if (!isDisposed) showSpline.value = true
-  }, 900)
 
   void initThree()
   window.addEventListener('resize', resizeThree)

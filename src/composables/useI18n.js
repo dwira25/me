@@ -1,8 +1,7 @@
 import { ref } from 'vue'
+import { safeLocalStorageGet, safeLocalStorageSet } from './useSafeStorage.js'
 
-const lang = ref(
-  typeof localStorage !== 'undefined' ? (localStorage.getItem('lang') || 'id') : 'id'
-)
+const lang = ref(safeLocalStorageGet('lang', 'id'))
 
 const msgs = {
   id: {
@@ -116,7 +115,7 @@ export function useI18n() {
 
   function toggleLang() {
     lang.value = lang.value === 'id' ? 'en' : 'id'
-    if (typeof localStorage !== 'undefined') localStorage.setItem('lang', lang.value)
+    safeLocalStorageSet('lang', lang.value)
   }
 
   return { lang, t, toggleLang }
