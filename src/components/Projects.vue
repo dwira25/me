@@ -1,132 +1,94 @@
 <script setup>
-import SectionHeading from './ui/SectionHeading.vue'
-import ProjectCard3D from './ProjectCard3D.vue'
+import { computed } from 'vue'
+import { useI18n } from '../composables/useI18n.js'
+const { lang, t } = useI18n()
 
-const projects = [
-  {
-    title: 'Aivora Workspace',
-    desc: 'AI Platform multi-LLM dengan RAG, knowledge base, efisiensi token, dan WhatsApp assistant.',
-    tags: ['Multi-LLM', 'RAG', 'WhatsApp Assistant', 'Token Efficiency'],
-    gradient: 'from-accent-cyan via-accent-blue to-accent-violet',
-    featured: true,
-  },
-  {
-    title: 'Oaktree Logistics System',
-    desc: 'Sistem operasional logistics/forwarding dengan invoice, payment, reporting, dan integrasi Accurate.',
-    tags: ['Logistics', 'Invoice & Payment', 'Accurate Integration'],
-    gradient: 'from-accent-blue to-accent-violet',
-  },
-  {
-    title: 'WMS & TMS System',
-    desc: 'Sistem warehouse dan transport management dengan inbound, QC, QR code, picking, vehicle, dan driver management.',
-    tags: ['Warehouse', 'Transport', 'QR Code', 'QC'],
-    gradient: 'from-accent-violet to-accent-cyan',
-  },
-  {
-    title: 'ClickUp PMO Dashboard',
-    desc: 'Setup workspace ClickUp untuk timeline project, dashboard, custom fields, task workflow, dan reporting.',
-    tags: ['ClickUp', 'PMO', 'Dashboard', 'Reporting'],
-    gradient: 'from-accent-cyan to-accent-blue',
-  },
-  {
-    title: 'ERP Pabrik Tali Plastik',
-    desc: 'Sistem ERP manufaktur untuk pembelian, produksi, penjualan, stock, finance, dan reporting.',
-    tags: ['Manufacturing ERP', 'Inventory', 'Finance'],
-    gradient: 'from-accent-blue via-accent-cyan to-accent-violet',
-  },
-  {
-    title: 'SAP S/4HANA Project Management',
-    desc: 'Project management implementasi modul SAP S/4HANA untuk proses bisnis enterprise.',
-    tags: ['SAP S/4HANA', 'ERP', 'Project Management'],
-    gradient: 'from-accent-cyan to-accent-blue',
-  },
-  {
-    title: 'System Konsolidasi & Backdate System',
-    desc: 'Sistem konsolidasi data dan backdate transaksi untuk akurasi laporan finance lintas entitas.',
-    tags: ['Data Consolidation', 'Backdate System', 'Finance'],
-    gradient: 'from-accent-violet to-accent-blue',
-  },
-  {
-    title: 'Warehouse System',
-    desc: 'Sistem manajemen gudang untuk inbound, outbound, stock tracking, dan reporting inventory.',
-    tags: ['Warehouse', 'Inventory', 'Stock Tracking'],
-    gradient: 'from-accent-cyan via-accent-blue to-accent-violet',
-  },
-  {
-    title: 'Procurement & Quality Control',
-    desc: 'Sistem procurement terintegrasi dengan quality control untuk pembelian dan penerimaan barang.',
-    tags: ['Procurement', 'Quality Control', 'Vendor Management'],
-    gradient: 'from-accent-blue to-accent-violet',
-  },
-  {
-    title: 'Agriculture Tracking System',
-    desc: 'Sistem tracking operasional perkebunan dari aktivitas lapangan hingga laporan produksi.',
-    tags: ['Agriculture', 'Field Tracking', 'Reporting'],
-    gradient: 'from-accent-violet via-accent-cyan to-accent-blue',
-  },
-  {
-    title: 'Tax System Kingdee [ERP]',
-    desc: 'Sistem perpajakan terintegrasi dengan ERP Kingdee untuk otomasi perhitungan dan pelaporan pajak.',
-    tags: ['Kingdee ERP', 'Tax Automation', 'Compliance'],
-    gradient: 'from-accent-cyan to-accent-violet',
-  },
-  {
-    title: 'System Heavy Equipment Rental',
-    desc: 'Sistem manajemen penyewaan alat berat mulai dari kontrak, jadwal pemakaian, hingga billing.',
-    tags: ['Equipment Rental', 'Contract Management', 'Billing'],
-    gradient: 'from-accent-blue via-accent-violet to-accent-cyan',
-  },
-  {
-    title: 'MANGANFOODS',
-    desc: 'Sistem operasional untuk industri F&B MANGANFOODS, mencakup produksi hingga distribusi.',
-    tags: ['F&B', 'Production', 'Distribution'],
-    gradient: 'from-accent-violet to-accent-cyan',
-  },
+const rawProjects = [
+  { title: 'Aivora Workspace',
+    desc:   'AI Platform multi-LLM dengan RAG, knowledge base, dan WhatsApp assistant.',
+    descEn: 'Multi-LLM AI platform with RAG, knowledge base, and WhatsApp assistant.',
+    tags: ['Multi-LLM', 'RAG', 'WhatsApp'], featured: true },
+  { title: 'Oaktree Logistics System',
+    desc:   'Sistem operasional logistics/forwarding dengan invoice, payment, dan integrasi Accurate.',
+    descEn: 'Logistics/forwarding operational system with invoice, payment, and Accurate integration.',
+    tags: ['Logistics', 'Invoice', 'Accurate'] },
+  { title: 'WMS & TMS System',
+    desc:   'Warehouse & transport management dengan inbound, QC, QR code, dan driver management.',
+    descEn: 'Warehouse & transport management with inbound, QC, QR code, and driver management.',
+    tags: ['WMS', 'TMS', 'QR Code'] },
+  { title: 'ClickUp PMO Dashboard',
+    desc:   'Setup workspace ClickUp untuk timeline, dashboard, custom field, dan reporting.',
+    descEn: 'ClickUp workspace setup for timeline, dashboard, custom fields, and reporting.',
+    tags: ['ClickUp', 'PMO', 'Dashboard'] },
+  { title: 'ERP Pabrik Tali Plastik',
+    desc:   'ERP manufaktur untuk pembelian, produksi, penjualan, stock, dan finance.',
+    descEn: 'Manufacturing ERP for purchasing, production, sales, stock, and finance.',
+    tags: ['ERP', 'Manufacturing', 'Finance'] },
+  { title: 'SAP S/4HANA',
+    desc:   'Project management implementasi modul SAP S/4HANA untuk proses bisnis enterprise.',
+    descEn: 'SAP S/4HANA module implementation project management for enterprise business processes.',
+    tags: ['SAP', 'ERP', 'Enterprise'] },
+  { title: 'Agriculture Tracking',
+    desc:   'Sistem tracking operasional perkebunan dari aktivitas lapangan hingga laporan produksi.',
+    descEn: 'Plantation operational tracking from field activities to production reports.',
+    tags: ['Agriculture', 'Field Ops'] },
+  { title: 'Heavy Equipment Rental',
+    desc:   'Sistem manajemen penyewaan alat berat: kontrak, jadwal, billing.',
+    descEn: 'Heavy equipment rental management: contracts, scheduling, billing.',
+    tags: ['Rental', 'Contract', 'Billing'] },
+  { title: 'Tax System Kingdee ERP',
+    desc:   'Sistem perpajakan terintegrasi dengan ERP Kingdee untuk otomasi pelaporan pajak.',
+    descEn: 'Tax system integrated with Kingdee ERP for automated tax reporting.',
+    tags: ['Kingdee', 'Tax', 'ERP'] },
+  { title: 'Procurement & QC',
+    desc:   'Sistem procurement terintegrasi quality control untuk pembelian dan penerimaan barang.',
+    descEn: 'Integrated procurement and quality control system for purchasing and goods receiving.',
+    tags: ['Procurement', 'QC'] },
+  { title: 'Consolidation System',
+    desc:   'Konsolidasi data dan backdate transaksi untuk akurasi laporan finance lintas entitas.',
+    descEn: 'Data consolidation and backdated transactions for accurate cross-entity finance reports.',
+    tags: ['Finance', 'Data'] },
+  { title: 'MANGANFOODS F&B',
+    desc:   'Sistem operasional F&B: produksi hingga distribusi.',
+    descEn: 'F&B operational system: production to distribution.',
+    tags: ['F&B', 'Production'] },
 ]
+
+const projects = computed(() =>
+  rawProjects.map(p => ({ ...p, desc: lang.value === 'en' ? p.descEn : p.desc }))
+)
 </script>
 
 <template>
-  <section id="projects" class="relative py-24 sm:py-32">
-    <div class="mx-auto max-w-6xl px-6 lg:px-8">
-      <SectionHeading
-        eyebrow="Projects"
-        title="Sistem yang sudah saya bangun &amp; jalankan"
-        subtitle="Implementasi nyata dari workflow automation, AI workspace, hingga ERP/WMS/TMS untuk kebutuhan operasional bisnis."
-      />
+  <section id="projects" class="py-20 border-t" style="border-color: var(--border)">
+    <div class="mx-auto max-w-3xl px-5">
 
-      <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <article
-          v-for="(project, index) in projects"
-          :key="project.title"
-          v-reveal="{ delay: (index % 2) * 100 }"
-          v-tilt
-          class="group relative overflow-hidden rounded-3xl border border-white/5 bg-white/[0.03] transition-all duration-300 hover:-translate-y-1 hover:border-accent-cyan/30 hover:shadow-card"
-          :class="project.featured ? 'lg:col-span-2' : ''"
+      <p v-reveal class="text-xs font-mono mb-6" style="color: var(--text-3)">{{ t('projects.label') }}</p>
+      <h2 v-reveal="{ delay: 80 }" class="text-2xl font-semibold tracking-tight mb-8" style="color: var(--text)">
+        {{ t('projects.heading') }}
+      </h2>
+
+      <div class="grid gap-3 md:grid-cols-2">
+        <div
+          v-for="(p, i) in projects"
+          :key="p.title"
+          v-reveal="{ delay: (i % 2) * 60 }"
+          class="proj-card"
+          :class="p.featured ? 'md:col-span-2' : ''"
         >
-          <!-- 3D header per card -->
-          <ProjectCard3D :index="index" :gradient="project.gradient">
-            <div class="absolute inset-0 bg-navy-900/60"></div>
-            <div
-              class="absolute -right-10 -top-10 h-40 w-40 rounded-full opacity-20 blur-3xl transition-all duration-500 group-hover:scale-125 group-hover:opacity-40"
-              :class="`bg-gradient-to-br ${project.gradient}`"
-            ></div>
-            <h3 class="absolute bottom-4 left-6 right-6 font-display text-xl font-bold text-white sm:text-2xl">{{ project.title }}</h3>
-          </ProjectCard3D>
-
-          <div class="p-6 sm:p-8">
-            <p class="text-sm leading-relaxed text-slate-400 sm:text-base">{{ project.desc }}</p>
-            <div class="mt-5 flex flex-wrap gap-2">
-              <span
-                v-for="tag in project.tags"
-                :key="tag"
-                class="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-slate-300"
-              >
-                {{ tag }}
-              </span>
-            </div>
+          <div class="flex items-start justify-between gap-3">
+            <h3 class="text-sm font-semibold" style="color: var(--text)">{{ p.title }}</h3>
+            <span class="text-xs font-mono shrink-0 mt-0.5" style="color: var(--text-3)">
+              {{ String(i + 1).padStart(2, '0') }}
+            </span>
           </div>
-        </article>
+          <p class="text-xs leading-relaxed mt-2" style="color: var(--text-2)">{{ p.desc }}</p>
+          <div class="flex flex-wrap gap-1.5 mt-3">
+            <span v-for="tag in p.tags" :key="tag" class="tag">{{ tag }}</span>
+          </div>
+        </div>
       </div>
+
     </div>
   </section>
 </template>

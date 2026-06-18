@@ -3,9 +3,10 @@ const year = new Date().getFullYear()
 </script>
 
 <template>
-  <footer class="border-t border-white/5 py-8">
-    <div class="mx-auto max-w-6xl px-6 text-center text-sm text-slate-500 lg:px-8">
-      © {{ year }} Dwira Naufal Siregar. All rights reserved.
+  <footer class="py-8 border-t" style="border-color: var(--border)">
+    <div class="mx-auto max-w-3xl px-5 flex items-center justify-between">
+      <span class="text-sm font-semibold tracking-tight" style="color: var(--text)">DNS</span>
+      <p class="text-xs font-mono" style="color: var(--text-3)">© {{ year }} Dwira Naufal Siregar</p>
     </div>
   </footer>
 </template>

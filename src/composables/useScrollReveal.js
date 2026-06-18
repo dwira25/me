@@ -16,11 +16,17 @@ export const vReveal = {
         if (entry.isIntersecting) {
           el.classList.add('in-view')
           observer.unobserve(el)
+          delete el._revealObserver
         }
       },
-      { threshold: 0.15, rootMargin: '0px 0px -60px 0px' }
+      { threshold: 0.05, rootMargin: '0px 0px -20px 0px' }
     )
 
+    el._revealObserver = observer
     observer.observe(el)
+  },
+  unmounted(el) {
+    el._revealObserver?.disconnect()
+    delete el._revealObserver
   },
 }

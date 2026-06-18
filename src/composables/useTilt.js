@@ -20,7 +20,15 @@ export const vTilt = {
       el.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)'
     }
 
+    el._tiltHandlers = { handleMouseMove, handleMouseLeave }
     el.addEventListener('mousemove', handleMouseMove)
     el.addEventListener('mouseleave', handleMouseLeave)
+  },
+  unmounted(el) {
+    if (el._tiltHandlers) {
+      el.removeEventListener('mousemove', el._tiltHandlers.handleMouseMove)
+      el.removeEventListener('mouseleave', el._tiltHandlers.handleMouseLeave)
+      delete el._tiltHandlers
+    }
   },
 }

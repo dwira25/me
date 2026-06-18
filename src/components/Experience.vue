@@ -1,110 +1,111 @@
 <script setup>
-import SectionHeading from './ui/SectionHeading.vue'
+import { ref, onMounted, onUnmounted, nextTick, computed } from 'vue'
+import { gsap } from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { prefersReducedMotion } from '../composables/useScrollAnimations.js'
+import { useI18n } from '../composables/useI18n.js'
 
-const experiences = [
+gsap.registerPlugin(ScrollTrigger)
+
+const { lang, t } = useI18n()
+
+const rawExperiences = [
   {
     role: 'AI Agent & MCP Developer',
-    period: '2024 — Sekarang',
-    desc: 'Merancang dan membangun AI agent pipeline dengan LLM, MCP server, dan 3D web integration.',
-    points: [
-      'Membangun MCP server untuk Spline, Three.js, Figma, GitHub',
-      'Merancang AI agent pipeline multi-tool dengan Claude/GPT',
-      'Integrasi Three.js & Spline 3D ke dalam aplikasi Vue/React',
-      'Prompt engineering dan RAG untuk AI workspace internal',
-    ],
-    tags: ['MCP', 'Claude API', 'Three.js', 'Spline', 'AI Agent', 'RAG'],
+    period: '2024 — Skrg',
+    desc:   'Merancang AI agent pipeline dengan LLM, MCP server, dan 3D web integration.',
+    descEn: 'Designing AI agent pipelines with LLM, MCP server, and 3D web integration.',
+    tags: ['MCP', 'Claude API', 'RAG', 'Three.js'],
   },
   {
     role: 'IT Project Manager / PMO',
-    period: '2022 — Sekarang',
-    desc: 'Mengelola perencanaan, eksekusi, dan monitoring multi-project dengan fokus pada visibility dan delivery.',
-    points: [
-      'Menyusun timeline & roadmap project',
-      'Membangun dashboard reporting untuk stakeholder',
-      'Mengelola workspace ClickUp untuk seluruh tim',
-      'Memastikan delivery tepat waktu dan sesuai scope',
-    ],
-    tags: ['ClickUp', 'PMO', 'Roadmap', 'Stakeholder Management', 'Agile'],
+    period: '2022 — Skrg',
+    desc:   'Mengelola timeline, dashboard reporting, dan visibility multi-project untuk stakeholder.',
+    descEn: 'Managing timelines, dashboard reporting, and multi-project visibility for stakeholders.',
+    tags: ['ClickUp', 'PMO', 'Agile', 'Roadmap'],
   },
   {
     role: 'Product & Workflow Builder',
-    period: '2021 — Sekarang',
-    desc: 'Membangun dan mengembangkan workflow digital serta produk internal berbasis AI.',
-    points: [
-      'Merancang workflow automation antar tools',
-      'Mengembangkan AI Workspace berbasis RAG',
-      'Integrasi API antar sistem internal',
-      'Continuous improvement proses kerja tim',
-    ],
-    tags: ['Workflow Automation', 'API Integration', 'RAG', 'AI Workspace', 'n8n'],
+    period: '2021 — Skrg',
+    desc:   'Workflow automation, AI Workspace berbasis RAG, integrasi API antar sistem.',
+    descEn: 'Workflow automation, RAG-based AI Workspace, and API integration between systems.',
+    tags: ['n8n', 'API Integration', 'AI Workspace'],
   },
   {
     role: 'QA & System Analyst',
     period: '2020 — 2021',
-    desc: 'Menjembatani kebutuhan bisnis dengan tim development melalui analisis dan pengujian sistem.',
-    points: [
-      'Menyusun requirement & dokumentasi sistem',
-      'Melakukan QA dan UAT sebelum rilis',
-      'Identifikasi bug dan validasi perbaikan',
-      'Koordinasi dengan tim development',
-    ],
-    tags: ['QA', 'UAT', 'BRD', 'System Analysis', 'Documentation'],
+    desc:   'Requirement, dokumentasi sistem, QA, dan UAT sebelum rilis.',
+    descEn: 'Requirements, system documentation, QA, and UAT before release.',
+    tags: ['QA', 'UAT', 'BRD', 'System Analysis'],
   },
   {
     role: 'IT Infrastructure / NOC',
     period: '2018 — 2020',
-    desc: 'Mengelola infrastruktur jaringan dan sistem untuk memastikan operasional berjalan stabil.',
-    points: [
-      'Monitoring & maintenance server dan jaringan',
-      'Troubleshooting infrastruktur IT',
-      'Dokumentasi konfigurasi sistem',
-      'Implementasi standar keamanan dasar',
-    ],
-    tags: ['Network', 'Server', 'Monitoring', 'IT Security', 'Linux'],
+    desc:   'Monitoring server dan jaringan, troubleshooting infrastruktur IT.',
+    descEn: 'Server and network monitoring, IT infrastructure troubleshooting.',
+    tags: ['Network', 'Linux', 'Monitoring'],
   },
 ]
+
+const experiences = computed(() =>
+  rawExperiences.map(e => ({
+    ...e,
+    period: e.period.replace('Skrg', t('exp.now')),
+    desc:   lang.value === 'en' ? e.descEn : e.desc,
+  }))
+)
+
+const activeIndex = ref(-1)
+const triggers = ref([])
+
+onMounted(() => {
+  if (prefersReducedMotion()) return
+  nextTick(() => {
+    document.querySelectorAll('.exp-item').forEach((el, i) => {
+      triggers.value.push(ScrollTrigger.create({
+        trigger: el, start: 'top 65%', end: 'bottom 35%',
+        onEnter: () => { activeIndex.value = i },
+        onLeave: () => { if (activeIndex.value === i) activeIndex.value = -1 },
+        onEnterBack: () => { activeIndex.value = i },
+        onLeaveBack: () => { if (activeIndex.value === i) activeIndex.value = -1 },
+      }))
+    })
+  })
+})
+onUnmounted(() => triggers.value.forEach(t => t.kill()))
 </script>
 
 <template>
-  <section id="experience" class="relative py-24 sm:py-32">
-    <div class="mx-auto max-w-6xl px-6 lg:px-8">
-      <SectionHeading
-        eyebrow="Experience"
-        title="Perjalanan karier di bidang IT &amp; Project Management"
-        subtitle="Empat fase yang membentuk cara saya melihat sistem, proses, dan kebutuhan tim."
-      />
+  <section id="experience" class="py-20 border-t" style="border-color: var(--border)">
+    <div class="mx-auto max-w-3xl px-5">
 
-      <ol class="relative space-y-10 border-l border-white/10 pl-8 sm:pl-10">
-        <li v-for="(exp, index) in experiences" :key="exp.role" v-reveal="{ delay: index * 80 }" class="relative">
-          <span
-            class="absolute -left-[2.6rem] top-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-navy-900 bg-gradient-to-br from-accent-cyan to-accent-violet shadow-glow sm:-left-[3.05rem]"
-          ></span>
+      <p v-reveal class="text-xs font-mono mb-6" style="color: var(--text-3)">{{ t('exp.label') }}</p>
+      <h2 v-reveal="{ delay: 80 }" class="text-2xl font-semibold tracking-tight mb-8" style="color: var(--text)">
+        {{ t('exp.heading') }}
+      </h2>
 
-          <div class="glass-panel rounded-2xl p-6 sm:p-8">
-            <div class="flex flex-wrap items-center justify-between gap-2">
-              <h3 class="font-display text-xl font-semibold text-white sm:text-2xl">{{ exp.role }}</h3>
-              <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.15em] text-accent-cyan">
-                {{ exp.period }}
-              </span>
-            </div>
-            <p class="mt-3 text-sm leading-relaxed text-slate-400 sm:text-base">{{ exp.desc }}</p>
-            <ul class="mt-5 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-              <li v-for="point in exp.points" :key="point" class="flex items-start gap-2.5 text-sm text-slate-300">
-                <span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent-cyan"></span>
-                {{ point }}
-              </li>
-            </ul>
-            <!-- Skill tags -->
-            <div class="mt-5 flex flex-wrap gap-2">
-              <span
-                v-for="tag in exp.tags"
-                :key="tag"
-                class="rounded-full border border-accent-cyan/20 bg-accent-cyan/5 px-3 py-1 text-xs font-medium text-accent-cyan"
-              >{{ tag }}</span>
-            </div>
+      <ol class="space-y-0">
+        <li
+          v-for="(exp, i) in experiences"
+          :key="exp.role"
+          v-reveal="{ delay: i * 60 }"
+          class="exp-item group border-t py-6 transition-colors duration-200"
+          :style="{ borderColor: 'var(--border)' }"
+        >
+          <div class="flex flex-wrap items-baseline justify-between gap-2 mb-2">
+            <h3 class="text-base font-semibold transition-colors duration-200"
+              :style="{ color: activeIndex === i ? 'var(--accent)' : 'var(--text)' }">
+              {{ exp.role }}
+            </h3>
+            <span class="text-xs font-mono" style="color: var(--text-3)">{{ exp.period }}</span>
+          </div>
+          <p class="text-sm leading-relaxed mb-3" style="color: var(--text-2)">{{ exp.desc }}</p>
+          <div class="flex flex-wrap gap-1.5">
+            <span v-for="tag in exp.tags" :key="tag" class="tag">{{ tag }}</span>
           </div>
         </li>
       </ol>
+
     </div>
   </section>
 </template>

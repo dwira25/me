@@ -1,124 +1,711 @@
 <script setup>
-import ThreeBackground from './ThreeBackground.vue'
-const focusAreas = ['Project Manager Officer', 'ClickUp Implementation', 'Workflow Automation', 'AI Workspace & RAG']
+import { ref, onMounted, onUnmounted } from 'vue'
+import * as THREE from 'three'
+import { gsap } from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import SplineHero from './SplineHero.vue'
+import { prefersReducedMotion } from '../composables/useScrollAnimations.js'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
+
+gsap.registerPlugin(ScrollTrigger)
+
+// ── Refs ─────────────────────────────────────────────────────────────
+const heroSection   = ref(null)
+const heroContent   = ref(null)
+const particlesCvs  = ref(null)
+const statProjects  = ref(null)
+const splineHeroRef = ref(null)
+const aiRef         = ref(null)
+const roleRef       = ref(null)
+const statsRef      = ref(null)
+const ctasRef       = ref(null)
+
+const NAME_LINES = [
+  { text: 'Dwira',   accent: false },
+  { text: 'Naufal',  accent: false },
+  { text: 'Siregar', accent: true  },
+]
+
+// ── AI Typewriter ─────────────────────────────────────────────────────
+const AI_PHRASES = [
+  'Building AI Workspaces',
+  'Automating Workflows',
+  'Delivering PMO Systems',
+  'Integrating AI Agents',
+  'Implementing ClickUp',
+  'Scaling Project Teams',
+]
+const aiText = ref('')
+let aiTimer = null, phraseIdx = 0, charIdx = 0, isDeleting = false
+
+function tickTypewriter() {
+  const phrase = AI_PHRASES[phraseIdx]
+  isDeleting
+    ? (aiText.value = phrase.slice(0, --charIdx))
+    : (aiText.value = phrase.slice(0, ++charIdx))
+
+  if (!isDeleting && charIdx === phrase.length) {
+    isDeleting = true
+    aiTimer = setTimeout(tickTypewriter, 1800)
+    return
+  }
+  if (isDeleting && charIdx === 0) {
+    isDeleting = false
+    phraseIdx = (phraseIdx + 1) % AI_PHRASES.length
+  }
+  aiTimer = setTimeout(tickTypewriter, isDeleting ? 32 : 68)
+}
+
+// ── Three.js — multi-color particles with mouse parallax ──────────────
+let r3 = null, scene3 = null, cam3 = null, pts3 = null, af3 = null
+let baseRotX = 0, baseRotY = 0
+let mTargetX = 0, mTargetY = 0, mCurrX = 0, mCurrY = 0
+
+function onMouseMove(e) {
+  mTargetX = (e.clientX / window.innerWidth - 0.5) * 2
+  mTargetY = -(e.clientY / window.innerHeight - 0.5) * 2
+}
+
+function initThree() {
+  const canvas = particlesCvs.value
+  if (!canvas) return
+
+  r3 = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: false })
+  r3.setPixelRatio(Math.min(window.devicePixelRatio, 1.0))
+  r3.setSize(window.innerWidth, window.innerHeight)
+  r3.setClearColor(0x000000, 0)
+
+  scene3 = new THREE.Scene()
+  cam3   = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100)
+  cam3.position.z = 6
+
+  const COUNT  = 150
+  const pos    = new Float32Array(COUNT * 3)
+  const colors = new Float32Array(COUNT * 3)
+
+  for (let i = 0; i < COUNT; i++) {
+    pos[i*3]   = (Math.random() - 0.5) * 20
+    pos[i*3+1] = (Math.random() - 0.5) * 16
+    pos[i*3+2] = (Math.random() - 0.5) * 10
+
+    if (Math.random() > 0.38) {
+      // Accent blue #3291ff
+      colors[i*3] = 0.196; colors[i*3+1] = 0.568; colors[i*3+2] = 1.0
+    } else {
+      // Near white
+      const v = 0.75 + Math.random() * 0.25
+      colors[i*3] = v; colors[i*3+1] = v; colors[i*3+2] = v
+    }
+  }
+
+  const geo = new THREE.BufferGeometry()
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3))
+  geo.setAttribute('color',    new THREE.BufferAttribute(colors, 3))
+
+  pts3 = new THREE.Points(geo, new THREE.PointsMaterial({
+    size: 0.026, vertexColors: true,
+    transparent: true, opacity: 0.5,
+    blending: THREE.AdditiveBlending, depthWrite: false,
+  }))
+  scene3.add(pts3)
+  tickThree()
+  if (heroSection.value) watchHeroVisibility(heroSection.value)
+}
+
+function tickThree() {
+  if (!heroVisible) { af3 = null; return }
+  af3 = requestAnimationFrame(tickThree)
+  if (!pts3 || !r3) return
+  baseRotY += 0.00055
+  baseRotX += 0.00022
+  mCurrX   += (mTargetX * 0.28 - mCurrX) * 0.025
+  mCurrY   += (mTargetY * 0.18 - mCurrY) * 0.025
+  pts3.rotation.y = baseRotY + mCurrX
+  pts3.rotation.x = baseRotX + mCurrY
+  r3.render(scene3, cam3)
+}
+
+function resizeThree() {
+  if (!r3 || !cam3) return
+  cam3.aspect = window.innerWidth / window.innerHeight
+  cam3.updateProjectionMatrix()
+  r3.setSize(window.innerWidth, window.innerHeight)
+}
+
+let heroVisible = true
+let heroObserver = null
+
+function watchHeroVisibility(el) {
+  heroObserver = new IntersectionObserver(
+    ([entry]) => {
+      heroVisible = entry.isIntersecting
+      if (heroVisible && !af3) tickThree()
+    },
+    { threshold: 0 }
+  )
+  heroObserver.observe(el)
+}
+
+function destroyThree() {
+  cancelAnimationFrame(af3)
+  af3 = null
+  heroObserver?.disconnect()
+  r3?.dispose()
+}
+
+// ── Number scramble ───────────────────────────────────────────────────
+function scrambleNumber(el, target, totalMs = 1600) {
+  if (!el) return
+  const start = performance.now()
+  const tick = () => {
+    const p = Math.min((performance.now() - start) / totalMs, 1)
+    if (p < 0.6)  el.textContent = Math.floor(Math.random() * 99) + '+'
+    else           el.textContent = Math.round(((p - 0.6) / 0.4) * target) + '+'
+    if (p < 1) requestAnimationFrame(tick)
+    else       el.textContent = target + '+'
+  }
+  requestAnimationFrame(tick)
+}
+
+// ── GSAP: entrance + scroll ───────────────────────────────────────────
+let scrollCtx = null
+
+function initEntrance() {
+  // Set initial hidden state
+  gsap.set(aiRef.value,    { opacity: 0, x: -20 })
+  gsap.set([roleRef.value, statsRef.value, ctasRef.value], { opacity: 0, y: 20 })
+
+  // Staggered reveal synced to WelcomeIntro exit (~2.5s)
+  gsap.to(aiRef.value,    { opacity: 1, x: 0, duration: 0.65, ease: 'power3.out', delay: 2.6  })
+  gsap.to(roleRef.value,  { opacity: 1, y: 0, duration: 0.65, ease: 'power3.out', delay: 3.05 })
+  gsap.to(statsRef.value, { opacity: 1, y: 0, duration: 0.65, ease: 'power3.out', delay: 3.15 })
+  gsap.to(ctasRef.value,  { opacity: 1, y: 0, duration: 0.65, ease: 'power3.out', delay: 3.30 })
+}
+
+function initScroll() {
+  scrollCtx = gsap.context(() => {
+    // Content parallax-out on scroll
+    gsap.to(heroContent.value, {
+      y: -70, opacity: 0, ease: 'none',
+      scrollTrigger: {
+        trigger: heroSection.value,
+        start: 'top top', end: '48% top', scrub: 0.7,
+      },
+    })
+
+    // Particles + Spline scroll integration
+    ScrollTrigger.create({
+      trigger: heroSection.value,
+      start: 'top top', end: '38% top', scrub: true,
+      onUpdate: (self) => {
+        if (pts3?.material) pts3.material.opacity = 0.5 * (1 - self.progress)
+        const app = splineHeroRef.value?.getApp()
+        if (app) try { app.setVariable?.('scrollProgress', self.progress) } catch (_) {}
+      },
+    })
+
+    // Stats scramble on scroll into view
+    ScrollTrigger.create({
+      trigger: statsRef.value,
+      start: 'top 92%', once: true,
+      onEnter: () => scrambleNumber(statProjects.value, 40),
+    })
+  })
+}
+
+// ── Lifecycle ─────────────────────────────────────────────────────────
+onMounted(() => {
+  aiTimer = setTimeout(tickTypewriter, 700)
+  if (prefersReducedMotion()) return
+  initThree()
+  window.addEventListener('resize', resizeThree)
+  window.addEventListener('mousemove', onMouseMove)
+  initEntrance()
+  initScroll()
+})
+
+onUnmounted(() => {
+  clearTimeout(aiTimer)
+  destroyThree()
+  scrollCtx?.revert()
+  window.removeEventListener('resize', resizeThree)
+  window.removeEventListener('mousemove', onMouseMove)
+})
 </script>
 
 <template>
-  <section
-    id="home"
-    class="relative flex min-h-screen items-center overflow-hidden bg-grid-pattern bg-grid pt-28 pb-20 sm:pt-32"
-  >
-    <ThreeBackground />
-    <div class="absolute inset-0 bg-hero-glow"></div>
-    <div
-      class="absolute -top-32 right-[-10%] h-[28rem] w-[28rem] bg-accent-violet/20 blur-3xl animate-blob"
-      aria-hidden="true"
-    ></div>
-    <div
-      class="absolute bottom-[-8rem] left-[-6rem] h-72 w-72 rounded-full bg-accent-cyan/15 blur-3xl animate-float-slow"
-      aria-hidden="true"
-    ></div>
+  <section id="home" ref="heroSection" class="hero-section">
 
-    <div class="relative mx-auto grid w-full max-w-6xl items-center gap-10 px-5 lg:grid-cols-[1.1fr_0.9fr] lg:gap-10 lg:px-8">
-      <div v-reveal>
-        <span class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.15em] text-accent-cyan sm:px-4 sm:text-xs sm:tracking-[0.2em]">
-          IT Project Manager Officer &middot; ClickUp Consultant - AI Agent Builder
-        </span>
+    <!-- Layer 0 · Spline 3D — full viewport background -->
+    <SplineHero ref="splineHeroRef" />
 
-        <h1 class="mt-5 font-display text-3xl font-extrabold leading-tight tracking-tight text-white sm:text-5xl lg:text-6xl">
-          Dwira Naufal
-          <span class="block pb-2 gradient-text-animated animate-gradient-x">Siregar</span>
+    <!-- Layer 1 · Three.js particles -->
+    <canvas ref="particlesCvs" class="particles-canvas" aria-hidden="true" />
+
+    <!-- Layer 2 · Readability gradients -->
+    <div class="grad-left"   aria-hidden="true" />
+    <div class="grad-bottom" aria-hidden="true" />
+
+    <!-- Layer 3 · Content -->
+    <div ref="heroContent" class="hero-body">
+      <div class="hero-float">
+
+        <!-- AI typewriter badge -->
+        <div ref="aiRef" class="ai-badge">
+          <span class="ai-dot" aria-hidden="true" />
+          <span class="mono">AI · {{ aiText }}<span class="cursor" aria-hidden="true">|</span></span>
+        </div>
+
+        <!-- Name — letter-by-letter reveal -->
+        <h1 class="hero-name" aria-label="Dwira Naufal Siregar">
+          <span
+            v-for="(line, li) in NAME_LINES"
+            :key="li"
+            class="name-row"
+            :class="{ 'name-accent': line.accent }"
+          >
+            <span
+              v-for="(ch, ci) in line.text.split('')"
+              :key="ci"
+              class="ltr"
+              :style="{ animationDelay: `${2650 + li * 160 + ci * 48}ms` }"
+            >{{ ch }}</span>
+          </span>
         </h1>
 
-        <p class="mt-5 max-w-xl text-sm leading-relaxed text-slate-400 sm:text-lg">
-          IT Project Manager &amp; ClickUp Consultant | Workflow Automation, AI Workspace, ERP/WMS/TMS &amp; API
-          Integration for Business Operations.
+        <!-- Role -->
+        <p ref="roleRef" class="hero-role">
+          {{ t('hero.role1') }}
+          <span class="sep">·</span>{{ t('hero.role2') }}
+          <span class="sep">·</span>{{ t('hero.role3') }}
         </p>
 
-        <p class="mt-3 max-w-xl text-xs leading-relaxed text-slate-500 sm:text-base">
-          Saya membantu tim dan perusahaan membangun sistem kerja yang lebih rapi, terukur, dan mudah digunakan
-          mulai dari implementasi ClickUp, workflow automation, integrasi API, ERP, WMS/TMS, hingga pengembangan AI
-          Workspace berbasis data internal.
-        </p>
+        <!-- Stats glass card -->
+        <div ref="statsRef" class="stats-card">
+          <div class="stat">
+            <span class="stat-val">2018</span>
+            <span class="stat-lbl">{{ t('hero.since') }}</span>
+          </div>
+          <span class="stat-div" aria-hidden="true" />
+          <div class="stat">
+            <span ref="statProjects" class="stat-val accent">40+</span>
+            <span class="stat-lbl">{{ t('hero.systems') }}</span>
+          </div>
+          <span class="stat-div" aria-hidden="true" />
+          <div class="stat">
+            <span class="stat-val">PMO</span>
+            <span class="stat-lbl">{{ t('hero.discipline') }}</span>
+          </div>
+        </div>
 
-        <div class="mt-8 flex flex-wrap gap-3">
-          <a
-            href="#projects"
-            class="btn-shimmer rounded-full bg-gradient-to-r from-accent-cyan via-accent-blue to-accent-violet px-6 py-3 text-sm font-semibold text-navy-950 shadow-glow transition-all duration-200 hover:-translate-y-0.5 hover:scale-[1.03] hover:shadow-[0_0_50px_-8px_rgba(34,211,238,0.5)]"
-          >
-            Lihat Project
+        <!-- CTAs -->
+        <div ref="ctasRef" class="hero-ctas">
+          <a href="#projects" class="btn-primary">
+            {{ t('hero.cta.view') }}
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2.5"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
           </a>
-          <a
-            href="#contact"
-            class="btn-shimmer rounded-full border border-white/15 bg-white/5 px-6 py-3 text-sm font-semibold text-slate-200 transition-all duration-200 hover:-translate-y-0.5 hover:scale-[1.03] hover:border-accent-cyan/50 hover:bg-white/10"
-          >
-            Hubungi Saya
-          </a>
+          <a href="#contact" class="btn-secondary">{{ t('hero.cta.contact') }}</a>
         </div>
 
-        <dl class="mt-10 grid max-w-md grid-cols-3 gap-4 border-t border-white/10 pt-6">
-          <div>
-            <dt class="font-display text-xl font-bold text-white sm:text-3xl">2018</dt>
-            <dd class="mt-1 text-[10px] text-slate-500 sm:text-sm">Berkarier di bidang IT</dd>
-          </div>
-          <div>
-            <dt class="font-display text-xl font-bold text-white sm:text-3xl">40+</dt>
-            <dd class="mt-1 text-[10px] text-slate-500 sm:text-sm">Sistem &amp; platform dibangun</dd>
-          </div>
-          <div>
-            <dt class="font-display text-xl font-bold text-white sm:text-3xl">PMO</dt>
-            <dd class="mt-1 text-[10px] text-slate-500 sm:text-sm">Fokus disiplin &amp; visibility</dd>
-          </div>
-        </dl>
-      </div>
-
-      <div v-reveal="{ delay: 150 }" class="relative mx-auto w-full max-w-md">
-        <div v-tilt class="gradient-border glass-panel relative rounded-3xl p-6 shadow-card sm:p-8">
-          <div class="flex items-center gap-3 sm:gap-4">
-            <div
-              class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-accent-cyan via-accent-blue to-accent-violet font-display text-base font-bold text-navy-950 transition-transform duration-300 hover:rotate-6 hover:scale-105 sm:h-16 sm:w-16 sm:text-xl"
-            >
-              DNS
-            </div>
-            <div>
-              <p class="font-display text-base font-semibold text-white sm:text-lg">Dwira Naufal Siregar</p>
-              <p class="text-xs text-slate-400 sm:text-sm">IT Project Manager / PMO</p>
-            </div>
-          </div>
-
-          <div class="mt-6 space-y-3">
-            <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Fokus Saat Ini</p>
-            <ul class="space-y-2">
-              <li
-                v-for="area in focusAreas"
-                :key="area"
-                class="flex items-center gap-3 rounded-xl border border-white/5 bg-white/[0.03] px-3 py-2.5 text-xs text-slate-300 transition-colors duration-200 hover:border-accent-cyan/30 hover:bg-white/[0.06] sm:px-4 sm:py-3 sm:text-sm"
-              >
-                <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-accent-cyan"></span>
-                {{ area }}
-              </li>
-            </ul>
-          </div>
-
-          <div class="mt-6 flex items-center justify-between rounded-xl border border-white/5 bg-white/[0.03] px-3 py-2.5 sm:mt-8 sm:px-4 sm:py-3">
-            <span class="text-xs text-slate-400">Availability</span>
-            <span class="flex items-center gap-2 text-xs font-semibold text-accent-cyan">
-              <span class="relative flex h-2 w-2">
-                <span class="absolute inline-flex h-full w-full rounded-full bg-accent-cyan shadow-glow animate-glow-pulse"></span>
-                <span class="relative inline-flex h-2 w-2 rounded-full bg-accent-cyan"></span>
-              </span>
-              Open for collaboration
-            </span>
-          </div>
-        </div>
-
-        <div
-          class="glass-panel absolute -bottom-8 -left-6 hidden w-44 rounded-2xl p-4 shadow-card animate-float sm:block"
-        >
-          <p class="text-xs font-semibold uppercase tracking-[0.2em] text-accent-violet">ClickUp Setup</p>
-          <p class="mt-2 text-xs text-slate-300">Workspace, dashboard &amp; reporting siap pakai</p>
-        </div>
       </div>
     </div>
+
+    <!-- Scroll indicator -->
+    <div class="scroll-indicator" aria-hidden="true">
+      <span class="scroll-label">Scroll</span>
+      <div class="scroll-line" />
+    </div>
+
   </section>
 </template>
+
+<style scoped>
+/* ── Section ──────────────────────────────────────────────────────── */
+.hero-section {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  min-height: 600px;
+  overflow: hidden;
+}
+
+/* ── Three.js canvas ──────────────────────────────────────────────── */
+.particles-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* ── Gradient overlays ────────────────────────────────────────────── */
+.grad-left {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, var(--bg) 0%, var(--bg) 10%, transparent 58%);
+  opacity: 0.88;
+  pointer-events: none;
+  z-index: 3;
+}
+.grad-bottom {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, var(--bg) 0%, transparent 42%);
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* ── Body + float wrapper ─────────────────────────────────────────── */
+.hero-body {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 clamp(1.5rem, 6vw, 6rem);
+  padding-top: 5rem;
+  max-width: 640px;
+}
+
+.hero-float {
+  animation: float 7s ease-in-out infinite;
+  animation-delay: 4s;
+  animation-fill-mode: backwards;
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0);   }
+  50%       { transform: translateY(-8px); }
+}
+
+/* ── AI Badge ─────────────────────────────────────────────────────── */
+.ai-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 100px;
+  background: rgba(50, 145, 255, 0.1);
+  border: 1px solid rgba(50, 145, 255, 0.25);
+  font-size: 11.5px;
+  color: var(--accent);
+  margin-bottom: 1.5rem;
+  width: fit-content;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+.ai-badge:hover {
+  background: rgba(50, 145, 255, 0.15);
+  border-color: rgba(50, 145, 255, 0.4);
+}
+
+/* Dot + expanding ring */
+.ai-dot {
+  position: relative;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+  animation: dot-pulse 1.5s ease-in-out infinite;
+}
+.ai-dot::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 1px solid var(--accent);
+  animation: ring-expand 2s ease-out infinite;
+}
+@keyframes dot-pulse {
+  0%, 100% { opacity: 1;   transform: scale(1);   }
+  50%       { opacity: 0.4; transform: scale(0.65); }
+}
+@keyframes ring-expand {
+  0%   { transform: scale(1);   opacity: 0.8; }
+  70%  { transform: scale(2.6); opacity: 0;   }
+  100% { transform: scale(1);   opacity: 0;   }
+}
+
+.mono { font-family: 'SF Mono', 'Fira Code', monospace; }
+
+.cursor {
+  display: inline-block;
+  margin-left: 1px;
+  animation: blink 0.72s step-end infinite;
+}
+@keyframes blink {
+  0%, 100% { opacity: 0.8; }
+  50%       { opacity: 0;   }
+}
+
+/* ── Name — letter-by-letter animation ────────────────────────────── */
+.hero-name {
+  display: flex;
+  flex-direction: column;
+  font-size: clamp(3.6rem, 9.5vw, 8rem);
+  font-weight: 700;
+  letter-spacing: -0.048em;
+  line-height: 0.92;
+  color: var(--text);
+  margin-bottom: 1.25rem;
+}
+
+.name-row {
+  display: block;
+  overflow: hidden;
+  line-height: 1.05;
+  padding-bottom: 0.18em;
+  margin-bottom: -0.18em;
+}
+.name-accent .ltr { color: var(--accent); }
+
+.ltr {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(0.75em);
+  filter: blur(5px);
+  animation: ltr-in 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes ltr-in {
+  to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
+/* ── Role ─────────────────────────────────────────────────────────── */
+.hero-role {
+  font-size: clamp(0.7rem, 1.3vw, 0.9rem);
+  color: var(--text-2);
+  margin-bottom: 1.75rem;
+  letter-spacing: 0.01em;
+  line-height: 1.7;
+}
+.sep {
+  display: inline-block;
+  margin: 0 0.5em;
+  color: var(--text-3);
+}
+
+/* ── Stats glass card ─────────────────────────────────────────────── */
+.stats-card {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 0.875rem 1.25rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  width: fit-content;
+  margin-bottom: 1.75rem;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.stats-card:hover {
+  border-color: rgba(50, 145, 255, 0.28);
+  box-shadow: 0 0 24px rgba(50, 145, 255, 0.08);
+}
+
+.stat { display: flex; flex-direction: column; gap: 3px; }
+
+.stat-val {
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--text);
+}
+.stat-val.accent { color: var(--accent); }
+
+.stat-lbl {
+  font-size: 9px;
+  color: var(--text-3);
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.stat-div {
+  display: block;
+  width: 1px; height: 28px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+/* ── CTAs ─────────────────────────────────────────────────────────── */
+.hero-ctas { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+
+.btn-primary {
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 24px;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: transform 0.2s var(--ease), box-shadow 0.2s ease;
+}
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 55%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.22), transparent);
+  transform: skewX(-18deg);
+  transition: left 0.55s ease;
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 32px rgba(50, 145, 255, 0.45);
+}
+.btn-primary:hover::after { left: 145%; }
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  padding: 11px 24px;
+  background: var(--bg-secondary);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s var(--ease);
+}
+.btn-secondary:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
+}
+
+/* ── Scroll indicator ─────────────────────────────────────────────── */
+.scroll-indicator {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.scroll-label {
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+.scroll-line {
+  width: 1px;
+  height: 44px;
+  background: linear-gradient(to bottom, var(--border-strong), transparent);
+  animation: scroll-ani 1.6s ease-in-out infinite;
+}
+@keyframes scroll-ani {
+  0%   { transform: scaleY(0); transform-origin: top;    opacity: 1; }
+  45%  { transform: scaleY(1); transform-origin: top;    opacity: 1; }
+  55%  { transform: scaleY(1); transform-origin: bottom; opacity: 1; }
+  100% { transform: scaleY(0); transform-origin: bottom; opacity: 0; }
+}
+
+/* ── Reduced motion ───────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .ltr       { opacity: 1; transform: none; filter: none; animation: none; }
+  .hero-float { animation: none; }
+  .ai-dot::after { animation: none; }
+}
+
+/* ── Tablet (768–1024px) ──────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .hero-body { max-width: 520px; }
+  .grad-left {
+    background: linear-gradient(90deg, var(--bg) 0%, var(--bg) 8%, transparent 62%);
+  }
+}
+
+/* ── Mobile (≤ 768px) ─────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Switch to bottom-up gradient — Spline shows at top */
+  .grad-left {
+    background: none;
+  }
+  .grad-bottom {
+    background: linear-gradient(to top, var(--bg) 0%, var(--bg) 22%, transparent 68%);
+  }
+
+  /* Content anchored to bottom */
+  .hero-body {
+    justify-content: flex-end;
+    padding: 0 1.25rem 1rem;
+    padding-top: 0;
+    max-width: 100%;
+  }
+
+  .hero-float { animation: none; }
+
+  /* Tighter badge on mobile */
+  .ai-badge { font-size: 10.5px; padding: 5px 12px; margin-bottom: 1rem; }
+
+  /* Smaller name */
+  .hero-name {
+    font-size: clamp(2.6rem, 12vw, 4rem);
+    line-height: 0.95;
+    margin-bottom: 0.875rem;
+  }
+
+  /* Role wraps naturally */
+  .hero-role {
+    font-size: 0.78rem;
+    margin-bottom: 1.25rem;
+    line-height: 1.7;
+  }
+  .sep { margin: 0 0.3em; }
+
+  /* Stats: horizontal scroll on very small screens */
+  .stats-card {
+    gap: 0.875rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1.25rem;
+    width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .stats-card::-webkit-scrollbar { display: none; }
+  .stat-val { font-size: 1.15rem; }
+
+  /* Stack CTAs vertically */
+  .hero-ctas { flex-direction: column; gap: 0.5rem; }
+  .btn-primary,
+  .btn-secondary { justify-content: center; width: 100%; padding: 12px 20px; }
+
+  /* Hide scroll indicator on mobile (too cluttered) */
+  .scroll-indicator { display: none; }
+}
+
+/* ── Small phones (≤ 390px) ───────────────────────────────────────── */
+@media (max-width: 390px) {
+  .hero-name { font-size: clamp(2.2rem, 13vw, 3rem); }
+  .hero-body { padding: 0 1rem 1rem; }
+}
+</style>
