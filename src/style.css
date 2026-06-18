@@ -647,6 +647,10 @@ h1, h2, h3, h4, .font-display {
   z-index: 1;
 }
 
+.lite-hero-robot {
+  display: none;
+}
+
 .lite-hero-title {
   margin: 0.15rem 0 0.65rem;
   font-size: clamp(2rem, 8vw, 3.6rem);
@@ -723,9 +727,186 @@ h1, h2, h3, h4, .font-display {
   min-width: 9.5rem;
 }
 
+/* ── Lite hero robot ───────────────────────────────────────────── */
+.lite-robot-shell {
+  position: relative;
+  width: min(100%, 14.5rem);
+  aspect-ratio: 0.95;
+  margin: 0 auto 1rem;
+  border-radius: 28px;
+  border: 1px solid var(--border);
+  background:
+    radial-gradient(circle at 50% 20%, rgba(255, 255, 255, 0.64), transparent 28%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.46), rgba(255, 255, 255, 0.18)),
+    linear-gradient(180deg, var(--bg-secondary), var(--bg));
+  box-shadow:
+    0 18px 40px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  overflow: hidden;
+  animation: robot-hover 7.5s ease-in-out infinite;
+}
+
+.lite-robot-shell::before,
+.lite-robot-shell::after {
+  content: '';
+  position: absolute;
+  inset: auto;
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+.lite-robot-shell::before {
+  width: 11rem;
+  height: 11rem;
+  right: -4.5rem;
+  top: -4rem;
+  background: radial-gradient(circle, rgba(50, 145, 255, 0.18), transparent 68%);
+}
+
+.lite-robot-shell::after {
+  width: 8rem;
+  height: 8rem;
+  left: -2.5rem;
+  bottom: -2rem;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.16), transparent 70%);
+}
+
+.lite-robot-halo {
+  position: absolute;
+  inset: 12% 18% auto;
+  height: 28%;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(50, 145, 255, 0.2), transparent 72%);
+  filter: blur(2px);
+}
+
+.lite-robot-antenna {
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  width: 0.14rem;
+  height: 18%;
+  transform: translateX(-50%);
+  background: linear-gradient(to bottom, var(--accent), transparent);
+  opacity: 0.9;
+}
+
+.lite-robot-antenna::before {
+  content: '';
+  position: absolute;
+  top: -0.35rem;
+  left: 50%;
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  transform: translateX(-50%);
+  background: var(--accent);
+  box-shadow: 0 0 0 7px rgba(50, 145, 255, 0.12);
+}
+
+.lite-robot-head {
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  width: 54%;
+  height: 24%;
+  transform: translateX(-50%);
+  border-radius: 28px 28px 20px 20px;
+  border: 1px solid rgba(50, 145, 255, 0.16);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(235, 242, 255, 0.88));
+  box-shadow:
+    0 12px 28px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+}
+
+.lite-robot-eye {
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 5px rgba(50, 145, 255, 0.1);
+}
+
+.lite-robot-mouth {
+  position: absolute;
+  top: calc(20% + 1.9rem);
+  left: 50%;
+  width: 1.8rem;
+  height: 0.3rem;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: rgba(17, 17, 17, 0.16);
+}
+
+.lite-robot-body {
+  position: absolute;
+  left: 50%;
+  bottom: 12%;
+  width: 68%;
+  height: 38%;
+  transform: translateX(-50%);
+  border-radius: 30px;
+  border: 1px solid var(--border);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.24)),
+    var(--bg-secondary);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+.lite-robot-panel {
+  position: absolute;
+  inset: 14% 18% 16%;
+  border-radius: 20px;
+  border: 1px solid rgba(50, 145, 255, 0.14);
+  background:
+    linear-gradient(180deg, rgba(50, 145, 255, 0.12), rgba(50, 145, 255, 0.02)),
+    repeating-linear-gradient(
+      180deg,
+      rgba(17, 17, 17, 0.06) 0,
+      rgba(17, 17, 17, 0.06) 0.16rem,
+      transparent 0.16rem,
+      transparent 0.48rem
+    );
+}
+
+.lite-robot-arm,
+.lite-robot-leg {
+  position: absolute;
+  background: linear-gradient(180deg, var(--accent), rgba(50, 145, 255, 0.2));
+  border-radius: 999px;
+}
+
+.lite-robot-arm {
+  top: 28%;
+  width: 0.5rem;
+  height: 26%;
+}
+
+.lite-robot-arm.left { left: -0.22rem; transform: rotate(18deg); }
+.lite-robot-arm.right { right: -0.22rem; transform: rotate(-18deg); }
+
+.lite-robot-leg {
+  bottom: -0.2rem;
+  width: 0.58rem;
+  height: 20%;
+}
+
+.lite-robot-leg.left { left: 24%; transform: rotate(10deg); }
+.lite-robot-leg.right { right: 24%; transform: rotate(-10deg); }
+
 @keyframes float-glow {
   0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
   50% { transform: translate3d(0, 1rem, 0) scale(1.06); }
+}
+
+@keyframes robot-hover {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
 }
 
 /* ── Skeleton placeholders ─────────────────────────────────────── */
@@ -818,6 +999,15 @@ h1, h2, h3, h4, .font-display {
     border-radius: 18px;
   }
 
+  .lite-hero-robot {
+    display: block;
+  }
+
+  .lite-robot-shell {
+    width: min(100%, 13rem);
+    margin-bottom: 0.85rem;
+  }
+
   .lite-hero-grid {
     grid-template-columns: 1fr;
   }
@@ -841,6 +1031,12 @@ h1, h2, h3, h4, .font-display {
 
   .skeleton-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 390px) {
+  .lite-robot-shell {
+    width: min(100%, 11.5rem);
   }
 }
 

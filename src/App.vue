@@ -158,6 +158,24 @@ provide('toggleDark', toggleDark)
             <p class="lite-gate-kicker">Portfolio</p>
             <span class="lite-status">Fast mode</span>
           </div>
+          <div class="lite-hero-robot" aria-hidden="true">
+            <div class="lite-robot-shell">
+              <span class="lite-robot-halo" />
+              <span class="lite-robot-antenna" />
+              <span class="lite-robot-head">
+                <span class="lite-robot-eye" />
+                <span class="lite-robot-eye" />
+              </span>
+              <span class="lite-robot-mouth" />
+              <span class="lite-robot-body">
+                <span class="lite-robot-panel" />
+                <span class="lite-robot-arm left" />
+                <span class="lite-robot-arm right" />
+                <span class="lite-robot-leg left" />
+                <span class="lite-robot-leg right" />
+              </span>
+            </div>
+          </div>
           <h1 class="lite-hero-title">Dwira Naufal Siregar</h1>
           <p class="lite-hero-copy">
             IT Project Manager, PMO, ClickUp Consultant, dan AI Workspace Builder.

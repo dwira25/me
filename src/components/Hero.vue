@@ -298,6 +298,24 @@ onUnmounted(() => {
     <!-- Layer 0 · Spline 3D — load only on large screens -->
     <SplineHero v-if="showSpline" ref="splineHeroRef" />
     <div v-else class="hero-static-scene" aria-hidden="true" />
+    <div class="lite-hero-robot hero-mobile-robot" aria-hidden="true">
+      <div class="lite-robot-shell">
+        <span class="lite-robot-halo" />
+        <span class="lite-robot-antenna" />
+        <span class="lite-robot-head">
+          <span class="lite-robot-eye" />
+          <span class="lite-robot-eye" />
+        </span>
+        <span class="lite-robot-mouth" />
+        <span class="lite-robot-body">
+          <span class="lite-robot-panel" />
+          <span class="lite-robot-arm left" />
+          <span class="lite-robot-arm right" />
+          <span class="lite-robot-leg left" />
+          <span class="lite-robot-leg right" />
+        </span>
+      </div>
+    </div>
 
     <!-- Layer 1 · Three.js particles -->
     <canvas v-if="useHeroScene" ref="particlesCvs" class="particles-canvas" aria-hidden="true" />
@@ -414,6 +432,17 @@ onUnmounted(() => {
   opacity: 0.9;
   pointer-events: none;
   z-index: 1;
+}
+
+.hero-mobile-robot {
+  display: none;
+  position: absolute;
+  left: 50%;
+  top: clamp(4.5rem, 12vw, 7rem);
+  transform: translateX(-50%);
+  width: min(78vw, 17rem);
+  z-index: 2;
+  pointer-events: none;
 }
 
 /* ── Gradient overlays ────────────────────────────────────────────── */
@@ -726,6 +755,10 @@ onUnmounted(() => {
   }
   .grad-bottom {
     background: linear-gradient(to top, var(--bg) 0%, var(--bg) 22%, transparent 68%);
+  }
+
+  .hero-mobile-robot {
+    display: block;
   }
 
   /* Content anchored to bottom */
