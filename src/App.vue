@@ -154,6 +154,7 @@ provide('toggleDark', toggleDark)
       <Hero v-if="shouldRenderFullHero" />
       <section v-else class="lite-hero">
         <div class="lite-hero-inner">
+          <div class="lite-hero-backdrop" aria-hidden="true" />
           <div class="lite-hero-topline">
             <p class="lite-gate-kicker">Portfolio</p>
             <span class="lite-status">Fast mode</span>
@@ -176,7 +177,8 @@ provide('toggleDark', toggleDark)
               </span>
             </div>
           </div>
-          <h1 class="lite-hero-title">Dwira Naufal Siregar</h1>
+          <h1 class="lite-hero-title">Dwira Naufal</h1>
+          <h2 class="lite-hero-title lite-hero-title--accent">Siregar</h2>
           <p class="lite-hero-copy">
             IT Project Manager, PMO, ClickUp Consultant, dan AI Workspace Builder.
           </p>

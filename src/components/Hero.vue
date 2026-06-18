@@ -25,9 +25,8 @@ const useHeroScene  = shouldUseHeroScene()
 const shouldShowSplineHero = useHeroScene
 
 const NAME_LINES = [
-  { text: 'Dwira',   accent: false },
-  { text: 'Naufal',  accent: false },
-  { text: 'Siregar', accent: true  },
+  { text: 'Dwira Naufal', accent: false },
+  { text: 'Siregar',      accent: true  },
 ]
 
 // ── AI Typewriter ─────────────────────────────────────────────────────
@@ -326,69 +325,71 @@ onUnmounted(() => {
 
     <!-- Layer 3 · Content -->
     <div ref="heroContent" class="hero-body">
-      <div class="hero-float">
+      <div class="hero-panel">
+        <div class="hero-float">
 
-        <!-- AI typewriter badge -->
-        <div ref="aiRef" class="ai-badge">
-          <span class="ai-dot" aria-hidden="true" />
-          <span class="mono">AI · {{ aiText }}<span class="cursor" aria-hidden="true">|</span></span>
-        </div>
+          <!-- AI typewriter badge -->
+          <div ref="aiRef" class="ai-badge">
+            <span class="ai-dot" aria-hidden="true" />
+            <span class="mono">AI · {{ aiText }}<span class="cursor" aria-hidden="true">|</span></span>
+          </div>
 
-        <!-- Name — letter-by-letter reveal -->
-        <h1 class="hero-name" aria-label="Dwira Naufal Siregar">
-          <span
-            v-for="(line, li) in NAME_LINES"
-            :key="li"
-            class="name-row"
-            :class="{ 'name-accent': line.accent }"
-          >
+          <!-- Name — letter-by-letter reveal -->
+          <h1 class="hero-name" aria-label="Dwira Naufal Siregar">
             <span
-              v-for="(ch, ci) in line.text.split('')"
-              :key="ci"
-              class="ltr"
-              :style="{ animationDelay: `${2650 + li * 160 + ci * 48}ms` }"
-            >{{ ch }}</span>
-          </span>
-        </h1>
+              v-for="(line, li) in NAME_LINES"
+              :key="li"
+              class="name-row"
+              :class="{ 'name-accent': line.accent }"
+            >
+              <span
+                v-for="(ch, ci) in line.text.split('')"
+                :key="ci"
+                class="ltr"
+                :style="{ animationDelay: `${2650 + li * 160 + ci * 48}ms` }"
+              >{{ ch }}</span>
+            </span>
+          </h1>
 
-        <!-- Role -->
-        <p ref="roleRef" class="hero-role">
-          {{ t('hero.role1') }}
-          <span class="sep">·</span>{{ t('hero.role2') }}
-          <span class="sep">·</span>{{ t('hero.role3') }}
-        </p>
+          <!-- Role -->
+          <p ref="roleRef" class="hero-role">
+            {{ t('hero.role1') }}
+            <span class="sep">·</span>{{ t('hero.role2') }}
+            <span class="sep">·</span>{{ t('hero.role3') }}
+          </p>
 
-        <!-- Stats glass card -->
-        <div ref="statsRef" class="stats-card">
-          <div class="stat">
-            <span class="stat-val">2018</span>
-            <span class="stat-lbl">{{ t('hero.since') }}</span>
+          <!-- Stats glass card -->
+          <div ref="statsRef" class="stats-card">
+            <div class="stat">
+              <span class="stat-val">2018</span>
+              <span class="stat-lbl">{{ t('hero.since') }}</span>
+            </div>
+            <span class="stat-div" aria-hidden="true" />
+            <div class="stat">
+              <span ref="statProjects" class="stat-val accent">40+</span>
+              <span class="stat-lbl">{{ t('hero.systems') }}</span>
+            </div>
+            <span class="stat-div" aria-hidden="true" />
+            <div class="stat">
+              <span class="stat-val">PMO</span>
+              <span class="stat-lbl">{{ t('hero.discipline') }}</span>
+            </div>
           </div>
-          <span class="stat-div" aria-hidden="true" />
-          <div class="stat">
-            <span ref="statProjects" class="stat-val accent">40+</span>
-            <span class="stat-lbl">{{ t('hero.systems') }}</span>
+
+          <!-- CTAs -->
+          <div ref="ctasRef" class="hero-ctas">
+            <a href="#projects" class="btn-primary">
+              {{ t('hero.cta.view') }}
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2.5"
+                   stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            </a>
+            <a href="#contact" class="btn-secondary">{{ t('hero.cta.contact') }}</a>
           </div>
-          <span class="stat-div" aria-hidden="true" />
-          <div class="stat">
-            <span class="stat-val">PMO</span>
-            <span class="stat-lbl">{{ t('hero.discipline') }}</span>
-          </div>
+
         </div>
-
-        <!-- CTAs -->
-        <div ref="ctasRef" class="hero-ctas">
-          <a href="#projects" class="btn-primary">
-            {{ t('hero.cta.view') }}
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                 stroke="currentColor" stroke-width="2.5"
-                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M5 12h14M12 5l7 7-7 7" />
-            </svg>
-          </a>
-          <a href="#contact" class="btn-secondary">{{ t('hero.cta.contact') }}</a>
-        </div>
-
       </div>
     </div>
 
@@ -409,6 +410,7 @@ onUnmounted(() => {
   height: 100dvh;
   min-height: 600px;
   overflow: hidden;
+  isolation: isolate;
 }
 
 /* ── Three.js canvas ──────────────────────────────────────────────── */
@@ -426,9 +428,10 @@ onUnmounted(() => {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 20% 20%, rgba(50, 145, 255, 0.14), transparent 32%),
-    radial-gradient(circle at 80% 30%, rgba(139, 92, 246, 0.14), transparent 34%),
-    linear-gradient(135deg, rgba(17, 17, 17, 0.04), transparent 48%);
+    radial-gradient(circle at 66% 32%, rgba(50, 145, 255, 0.16), transparent 18%),
+    radial-gradient(circle at 80% 22%, rgba(139, 92, 246, 0.16), transparent 22%),
+    radial-gradient(circle at 36% 58%, rgba(50, 145, 255, 0.06), transparent 24%),
+    linear-gradient(180deg, rgba(17, 17, 17, 0.03), transparent 56%);
   opacity: 0.9;
   pointer-events: none;
   z-index: 1;
@@ -449,8 +452,10 @@ onUnmounted(() => {
 .grad-left {
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, var(--bg) 0%, var(--bg) 10%, transparent 58%);
-  opacity: 0.88;
+  background:
+    radial-gradient(circle at 46% 42%, rgba(255, 255, 255, 0.48), rgba(255, 255, 255, 0.14) 24%, transparent 62%),
+    linear-gradient(90deg, var(--bg) 0%, rgba(255, 255, 255, 0.26) 18%, transparent 42%, transparent 58%, rgba(255, 255, 255, 0.26) 82%, var(--bg) 100%);
+  opacity: 0.58;
   pointer-events: none;
   z-index: 3;
 }
@@ -469,10 +474,46 @@ onUnmounted(() => {
   z-index: 10;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  padding: 0 clamp(1.5rem, 6vw, 6rem);
-  padding-top: 5rem;
-  max-width: 640px;
+  justify-content: flex-end;
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  width: min(100%, 960px);
+  padding: 0 clamp(1rem, 4vw, 2rem);
+  align-items: center;
+  text-align: center;
+}
+
+.hero-panel {
+  width: min(100%, 620px);
+  padding: clamp(1rem, 2vw, 1.55rem);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(50, 145, 255, 0.08), transparent 26%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.48), rgba(255, 255, 255, 0.2));
+  box-shadow:
+    0 18px 50px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.34);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.dark .hero-panel {
+  border-color: rgba(255, 255, 255, 0.06);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(50, 145, 255, 0.1), transparent 24%),
+    linear-gradient(180deg, rgba(18, 18, 18, 0.7), rgba(18, 18, 18, 0.42));
+  box-shadow:
+    0 18px 50px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.hero-float {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  gap: 0.25rem;
 }
 
 .hero-float {
@@ -496,7 +537,7 @@ onUnmounted(() => {
   border: 1px solid rgba(50, 145, 255, 0.25);
   font-size: 11.5px;
   color: var(--accent);
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.9rem;
   width: fit-content;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
@@ -551,20 +592,22 @@ onUnmounted(() => {
 .hero-name {
   display: flex;
   flex-direction: column;
-  font-size: clamp(3.6rem, 9.5vw, 8rem);
+  font-size: clamp(2.6rem, 6.6vw, 5.2rem);
   font-weight: 700;
   letter-spacing: -0.048em;
-  line-height: 0.92;
+  line-height: 0.88;
   color: var(--text);
-  margin-bottom: 1.25rem;
+  margin-bottom: 0.8rem;
+  align-items: center;
+  text-wrap: balance;
 }
 
 .name-row {
   display: block;
   overflow: hidden;
-  line-height: 1.05;
-  padding-bottom: 0.18em;
-  margin-bottom: -0.18em;
+  line-height: 1;
+  padding-bottom: 0.12em;
+  margin-bottom: -0.12em;
 }
 .name-accent .ltr { color: var(--accent); }
 
@@ -583,9 +626,12 @@ onUnmounted(() => {
 .hero-role {
   font-size: clamp(0.7rem, 1.3vw, 0.9rem);
   color: var(--text-2);
-  margin-bottom: 1.75rem;
+  margin-bottom: 1rem;
   letter-spacing: 0.01em;
-  line-height: 1.7;
+  line-height: 1.5;
+  text-align: center;
+  max-width: 44rem;
+  text-wrap: balance;
 }
 .sep {
   display: inline-block;
@@ -595,17 +641,18 @@ onUnmounted(() => {
 
 /* ── Stats glass card ─────────────────────────────────────────────── */
 .stats-card {
-  display: flex;
-  align-items: center;
-  gap: 1.25rem;
-  padding: 0.875rem 1.25rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+  padding: 0.55rem;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 14px;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  width: fit-content;
-  margin-bottom: 1.75rem;
+  width: min(100%, 30rem);
+  margin-bottom: 1rem;
+  margin-inline: auto;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 .stats-card:hover {
@@ -613,10 +660,17 @@ onUnmounted(() => {
   box-shadow: 0 0 24px rgba(50, 145, 255, 0.08);
 }
 
-.stat { display: flex; flex-direction: column; gap: 3px; }
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.25rem 0.1rem;
+  text-align: center;
+}
 
 .stat-val {
-  font-size: 1.35rem;
+  font-size: 1.1rem;
   font-weight: 700;
   letter-spacing: -0.03em;
   line-height: 1;
@@ -625,7 +679,7 @@ onUnmounted(() => {
 .stat-val.accent { color: var(--accent); }
 
 .stat-lbl {
-  font-size: 9px;
+  font-size: 8.5px;
   color: var(--text-3);
   font-family: 'SF Mono', 'Fira Code', monospace;
   white-space: nowrap;
@@ -634,14 +688,16 @@ onUnmounted(() => {
 }
 
 .stat-div {
-  display: block;
-  width: 1px; height: 28px;
-  background: var(--border);
-  flex-shrink: 0;
+  display: none;
 }
 
 /* ── CTAs ─────────────────────────────────────────────────────────── */
-.hero-ctas { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+.hero-ctas {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
 
 .btn-primary {
   position: relative;
@@ -738,9 +794,10 @@ onUnmounted(() => {
 
 /* ── Tablet (768–1024px) ──────────────────────────────────────────── */
 @media (max-width: 1024px) {
-  .hero-body { max-width: 520px; }
+  .hero-body { max-width: 900px; justify-content: center; }
+  .hero-panel { width: min(100%, 620px); }
   .grad-left {
-    background: linear-gradient(90deg, var(--bg) 0%, var(--bg) 8%, transparent 62%);
+    opacity: 0.48;
   }
   .hero-static-scene {
     opacity: 0.75;
@@ -764,9 +821,19 @@ onUnmounted(() => {
   /* Content anchored to bottom */
   .hero-body {
     justify-content: flex-end;
-    padding: 0 1.25rem 1rem;
+    left: 0;
+    right: 0;
+    margin-inline: 0;
+    width: 100%;
+    padding: 0 1rem 1rem;
     padding-top: 0;
     max-width: 100%;
+  }
+
+  .hero-panel {
+    width: 100%;
+    padding: 0.95rem 0.95rem 1rem;
+    border-radius: 22px;
   }
 
   .hero-float { animation: none; }
@@ -776,29 +843,26 @@ onUnmounted(() => {
 
   /* Smaller name */
   .hero-name {
-    font-size: clamp(2.6rem, 12vw, 4rem);
+    font-size: clamp(2.15rem, 10vw, 3.2rem);
     line-height: 0.95;
-    margin-bottom: 0.875rem;
+    margin-bottom: 0.7rem;
   }
 
   /* Role wraps naturally */
   .hero-role {
     font-size: 0.78rem;
-    margin-bottom: 1.25rem;
-    line-height: 1.7;
+    margin-bottom: 0.9rem;
+    line-height: 1.45;
   }
   .sep { margin: 0 0.3em; }
 
   /* Stats: horizontal scroll on very small screens */
   .stats-card {
-    gap: 0.875rem;
-    padding: 0.75rem 1rem;
-    margin-bottom: 1.25rem;
+    gap: 0.45rem;
+    padding: 0.5rem;
+    margin-bottom: 0.9rem;
     width: 100%;
-    overflow-x: auto;
-    scrollbar-width: none;
   }
-  .stats-card::-webkit-scrollbar { display: none; }
   .stat-val { font-size: 1.15rem; }
 
   /* Stack CTAs vertically */
