@@ -3,7 +3,8 @@ const MAX_TILT_DEG = 8
 export const vTilt = {
   mounted(el) {
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (prefersReducedMotion) return
+    const isCoarsePointer = window.matchMedia('(pointer: coarse)').matches
+    if (prefersReducedMotion || isCoarsePointer) return
 
     el.classList.add('tilt-card')
 

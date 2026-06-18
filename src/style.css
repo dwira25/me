@@ -1025,6 +1025,63 @@ h1, h2, h3, h4, .font-display {
   filter: drop-shadow(0 10px 30px rgba(50, 145, 255, 0.25));
 }
 
+.orbit-static {
+  position: relative;
+  width: min(100%, 320px);
+  height: 100%;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(50, 145, 255, 0.12), transparent 42%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 50%);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.orbit-static-core {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: 92px;
+  height: 92px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.22), transparent 28%),
+    radial-gradient(circle at 50% 50%, rgba(50, 145, 255, 0.25), rgba(17, 17, 17, 0) 70%);
+  box-shadow:
+    0 0 0 1px rgba(50, 145, 255, 0.16),
+    0 0 40px rgba(50, 145, 255, 0.14);
+}
+
+.orbit-static-chip {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.orbit-static-chip--alt {
+  top: auto;
+  left: auto;
+  right: 24px;
+  bottom: 26px;
+  color: var(--text-2);
+}
+
+.orbit-static-chip--third {
+  left: 50%;
+  bottom: 18px;
+  top: auto;
+  transform: translateX(-50%);
+  color: var(--text-2);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .orbit-ring, .orbit-chip { animation: none; }
 }

@@ -1,10 +1,12 @@
 <script setup>
 import { computed, defineAsyncComponent } from 'vue'
 import { useI18n } from '../composables/useI18n.js'
+import { shouldUseHeroScene } from '../composables/usePerformanceMode.js'
 
 const FloatingOrb = defineAsyncComponent(() => import('./FloatingOrb.vue'))
 
 const { t } = useI18n()
+const useFloatingOrb = shouldUseHeroScene()
 
 const ACCENTS = ['var(--c-cyan)', 'var(--c-blue)', 'var(--c-violet)']
 
@@ -42,11 +44,19 @@ const groups = computed(() => [
 
       <!-- AI-core orbit stage: FloatingOrb (Three.js) with orbiting MCP/RAG/LLM chips -->
       <div v-reveal="{ delay: 120 }" class="orbit-stage" aria-hidden="true">
-        <div class="orbit-ring orbit-ring--3"><span class="orbit-chip">LLM Agent</span></div>
-        <div class="orbit-ring orbit-ring--2"><span class="orbit-chip">RAG</span></div>
-        <div class="orbit-ring orbit-ring--1"><span class="orbit-chip">MCP</span></div>
-        <div class="orbit-core">
-          <FloatingOrb :size="120" />
+        <template v-if="useFloatingOrb">
+          <div class="orbit-ring orbit-ring--3"><span class="orbit-chip">LLM Agent</span></div>
+          <div class="orbit-ring orbit-ring--2"><span class="orbit-chip">RAG</span></div>
+          <div class="orbit-ring orbit-ring--1"><span class="orbit-chip">MCP</span></div>
+          <div class="orbit-core">
+            <FloatingOrb :size="120" />
+          </div>
+        </template>
+        <div v-else class="orbit-static">
+          <div class="orbit-static-core" />
+          <div class="orbit-static-chip">LLM</div>
+          <div class="orbit-static-chip orbit-static-chip--alt">RAG</div>
+          <div class="orbit-static-chip orbit-static-chip--third">MCP</div>
         </div>
       </div>
 

@@ -5,6 +5,7 @@ import WelcomeIntro from './components/WelcomeIntro.vue'
 import {
   prefersReducedData,
   prefersReducedMotion,
+  isCoarsePointer,
   shouldUseLiteMode,
 } from './composables/usePerformanceMode.js'
 import { safeLocalStorageGet, safeLocalStorageSet } from './composables/useSafeStorage.js'
@@ -118,7 +119,7 @@ onMounted(() => {
   isDark.value = saved ? saved === 'dark' : prefersDark
   document.documentElement.classList.toggle('dark', isDark.value)
 
-  if (liteMode.value && window.innerWidth < 1024 && !prefersReducedMotion() && !prefersReducedData()) {
+  if (liteMode.value && !isCoarsePointer() && window.innerWidth >= 1024 && !prefersReducedMotion() && !prefersReducedData()) {
     mobileAutoLoadTimer = window.setTimeout(() => {
       loadFullPortfolio()
     }, 1200)

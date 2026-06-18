@@ -2,7 +2,6 @@
 import { ref, onMounted, onUnmounted, defineAsyncComponent } from 'vue'
 import {
   prefersReducedMotion,
-  prefersReducedData,
   shouldUseHeroScene,
   scheduleIdle,
 } from '../composables/usePerformanceMode.js'
@@ -23,7 +22,7 @@ const statsRef      = ref(null)
 const ctasRef       = ref(null)
 const showSpline    = ref(false)
 const useHeroScene  = shouldUseHeroScene()
-const shouldShowSplineHero = !prefersReducedMotion() && !prefersReducedData()
+const shouldShowSplineHero = useHeroScene
 
 const NAME_LINES = [
   { text: 'Dwira',   accent: false },
